@@ -1,20 +1,22 @@
 import { useRef, useState } from 'react'
 import { activityOptions, estimateNutrition, goalOptions, experienceOptions, mealOptions } from '../shared/nutrition.js'
 const initial = { age: '', coefficient: '', weight: '', height: '', activity: '', training: '', goal: '', experience: '', meals: '', suitable: false }
-export default function NutritionCalculator({ status, busy, onExplain, onAgeMode }) {
+export default function NutritionCalculator({ status, busy, onExplain }) {
   const [values, setValues] = useState(initial)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
   const [share, setShare] = useState(false)
   const resultHeading = useRef(null)
+  const [ageTouched, setAgeTouched] = useState(false)
+  const invalidAge = values.age !== '' && (!Number.isInteger(Number(values.age)) || Number(values.age) < 18 || Number(values.age) > 75)
   function update(event) {
     const { name, value, checked, type } = event.target
-    if (name === 'age') onAgeMode?.(value !== '' && Number(value) < 18)
     setValues(previous => ({ ...previous, [name]: type === 'checkbox' ? checked : value, ...(name === 'age' ? { suitable: false } : {}) }))
     setResult(null); setError(''); setShare(false)
   }
   function calculate(event) {
     event.preventDefault()
+    setAgeTouched(true)
     const estimate = estimateNutrition(values)
     if (!estimate.ok) { setError(estimate.error); setResult(null); return }
     setResult(estimate); setError(''); setShare(false)
@@ -22,7 +24,8 @@ export default function NutritionCalculator({ status, busy, onExplain, onAgeMode
   }
   return <div className="nutrition-calculator"><header className="nutrition-intro"><span className="nutrition-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M8 6h8M8 11h2m4 0h2m-8 4h2m4 0h2m-8 4h2m4 0h2"/></svg></span><span className="chat-label">A STARTING POINT, NOT A PRESCRIPTION</span><h3>Your gym goal.<br/><em>Your next steps.</em></h3><p>Tell us about your gym routine and goal. For adults 18+ only; calculator estimates support ages 18–75.</p></header>
   <form className="nutrition-form" onSubmit={calculate}>
-    <div className="nutrition-grid"><label>Age <span>years</span><input name="age" inputMode="numeric" type="number" step="1" min="18" max="75" required value={values.age} onChange={update} placeholder="e.g. 28"/></label><><label>Equation coefficient<select name="coefficient" required value={values.coefficient} onChange={update}><option value="">Choose one</option><option value="female">Female coefficient</option><option value="male">Male coefficient</option><option value="other">Neither / unsure</option></select></label><label>Weight <span>kg</span><input name="weight" inputMode="decimal" type="number" step="0.1" min="1" max="500" required value={values.weight} onChange={update} placeholder="e.g. 70"/></label><label>Height <span>cm</span><input name="height" inputMode="decimal" type="number" step="0.1" min="1" max="300" required value={values.height} onChange={update} placeholder="e.g. 175"/></label></></div>
+    <div className="nutrition-grid"><label>Age <span>years</span><input name="age" inputMode="numeric" type="text" maxLength={3} aria-describedby="calculator-age-help" aria-invalid={ageTouched && invalidAge} onFocus={() => setAgeTouched(false)} onBlur={() => setAgeTouched(true)} required value={values.age} onChange={update} placeholder="e.g. 28"/></label><><label>Equation coefficient<select name="coefficient" required value={values.coefficient} onChange={update}><option value="">Choose one</option><option value="female">Female coefficient</option><option value="male">Male coefficient</option><option value="other">Neither / unsure</option></select></label><label>Weight <span>kg</span><input name="weight" inputMode="decimal" type="number" step="0.1" min="1" max="500" required value={values.weight} onChange={update} placeholder="e.g. 70"/></label><label>Height <span>cm</span><input name="height" inputMode="decimal" type="number" step="0.1" min="1" max="300" required value={values.height} onChange={update} placeholder="e.g. 175"/></label></></div>
+    <p id="calculator-age-help" className="nutrition-helper" role={ageTouched && invalidAge ? 'status' : undefined}>{ageTouched && invalidAge ? 'Please enter a whole-number age from 18 to 75 for an estimate. You can edit your age here; the assistant stays open. AI chat is for adults 18+ only.' : 'Enter your age in years. Calculator estimates support adults ages 18–75.'}</p>
     <p className="nutrition-helper">Use kilograms and centimeters. The formula’s sex-based coefficient is not a gender label. Choose “Neither / unsure” if it doesn’t suit your physiology.</p>
     <label>Overall activity<select name="activity" required value={values.activity} onChange={update}><option value="">Include work, daily life and exercise</option>{Object.entries(activityOptions).map(([value, info]) => <option key={value} value={value}>{info.label}</option>)}</select></label>
     <label>Current gym / exercise days per week<select name="training" required value={values.training} onChange={update}><option value="">Choose your current routine</option>{[0,1,2,3,4,5,6,7].map(value => <option value={value} key={value}>{value} {value === 1 ? 'day' : 'days'} per week</option>)}</select></label>
@@ -30,7 +33,7 @@ export default function NutritionCalculator({ status, busy, onExplain, onAgeMode
     <label>Gym experience<select name="experience" required value={values.experience} onChange={update}><option value="">Where are you starting?</option>{Object.entries(experienceOptions).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
     <label>Biggest challenge with meals<select name="meals" required value={values.meals} onChange={update}><option value="">Choose what feels most relevant</option>{Object.entries(mealOptions).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
     <label className="nutrition-check"><input name="suitable" type="checkbox" checked={values.suitable} onChange={update}/><span>I am 18–75, not pregnant or breastfeeding, and do not have an eating-disorder history or a medical condition affecting nutrition needs (such as kidney disease). Otherwise I will seek professional guidance.</span></label>
-    <button className="nutrition-submit" type="submit">Calculate & plan my next steps <span aria-hidden="true">→</span></button><p className="nutrition-local">No account needed. Nothing is sent to AI by this button.</p><button type="button" className="nutrition-reset" onClick={() => { setValues(initial); onAgeMode?.(false); setResult(null); setError(''); setShare(false) }}>Clear my inputs</button>
+    <button className="nutrition-submit" type="submit">Calculate & plan my next steps <span aria-hidden="true">→</span></button><p className="nutrition-local">No account needed. Nothing is sent to AI by this button.</p><button type="button" className="nutrition-reset" onClick={() => { setValues(initial); setAgeTouched(false); setResult(null); setError(''); setShare(false) }}>Clear my inputs</button>
   </form>
   {error && <output role="alert" className="chat-error">{error}</output>}
   {result && <section className="nutrition-results" aria-label="Gym guidance and estimates"><h4 ref={resultHeading} tabIndex={-1}>Your estimated starting point</h4>{result.mode === 'adult' && <><div className="nutrition-stats"><div><span>MAINTENANCE ENERGY</span><strong>~{result.maintenance.toLocaleString()}</strong><small>kcal per day</small></div><div><span>PROTEIN REFERENCE</span><strong>{result.proteinLow === result.proteinHigh ? result.proteinLow : `${result.proteinLow}–${result.proteinHigh}`}</strong><small>grams per day</small></div></div><p>{result.note}</p><p>{result.goalNote} Activity multipliers are rough; actual needs may differ substantially. Protein includes all food and drinks—not just shakes.</p>
