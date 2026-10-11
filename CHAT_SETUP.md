@@ -14,7 +14,7 @@ Set `CHAT_ENABLED=false` to disable the API and `VITE_CHAT_ENABLED=false` to hid
 - Custom circular robot launcher, responsive accessible non-modal chat panel, presets, busy/cancel/clear controls, graceful unconfigured/provider-error states.
 - Server-side key, input size validation, short answer/context limits, 20-second provider timeout, same-origin browser checks, and basic in-memory 6 requests/minute/IP throttling.
 - No app conversation storage or intentional prompt logging. Conversation is held in tab memory, sent to Google on consent; Google and infrastructure providers have their own retention/processing policies. Do not solicit sensitive health data. Review Gemini data-use terms for your account/tier before launch.
-- General fitness education only. No validated personalized calorie/protein calculator yet. Does not access accounts, scan QR or award points. Prompt safeguards reduce risk but cannot guarantee AI accuracy or safety.
+- General fitness education only. Includes a formula-based nutrition calculator with unit-tested arithmetic, not clinical validation. Does not access accounts, scan QR or award points. Prompt safeguards reduce risk but cannot guarantee AI accuracy or safety.
 - No real Gemini response was verified without a configured key. Hosting / provider charges and quotas may apply.
 
 ## Before sharing publicly
@@ -22,3 +22,8 @@ This is a trial, not a cost-abuse-proof public launch. In-memory rate limits res
 
 ## GitHub Pages
 GitHub Pages cannot execute `/api/chat`. The widget will show offline there unless a separately hosted API and secure cross-origin configuration are intentionally implemented. Vercel is the intended chatbot host. Use `npm run build:pages` only for static GitHub Pages deployment.
+
+
+## Nutrition Calculator tab
+Seven inputs: age, equation coefficient, kg, cm, overall activity, current weekly exercise days, and goal. Mifflin–St Jeor × approximate activity factor provides maintenance energy (nearest 50 kcal); no deficit or surplus is prescribed. Protein uses an adult 0.8 g/kg reference when exercising fewer than two days, and 1.4–2.0 g/kg for regular exercise (1.6–2.0 for the strength goal). Those are transparent product heuristics, not individualized clinical assessments. Sources and exact math are linked in the UI. Adults 18–75 only with suitability attestation; out-of-scope measurements route to professional guidance.
+Calculations happen locally. Optional AI explanation requires explicit consent to send inputs to Google. The API recalculates from validated inputs using `shared/nutrition.js`, ignoring client-supplied totals. Include the entire `shared/` folder when uploading. The API advertises `nutritionCalculator:true`; an older backend leaves AI explanation disabled while local calculations continue to work. Tested using mocked AI responses, not clinically validated.
