@@ -5,7 +5,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "build:pages": "vite build && node scripts/prepare-pages.mjs"
+    "build:pages": "vite build --mode pages && node scripts/prepare-pages.mjs"
   },
   "keywords": [],
   "author": "",

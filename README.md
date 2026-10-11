@@ -1,5 +1,8 @@
 # Aureatine
 
+## Vercel + Gemini chat
+Use repository root, Vite, `npm run build`, output `dist`. `vercel.json` configures the server-side `/api/chat` function and SPA routes. Add `GEMINI_API_KEY` privately in Vercel, then redeploy. See **CHAT_SETUP.md** before enabling public chat. The Gemini integration has not been tested with real credentials; UI and mocked API tests pass.
+
 A light-brown React website for Aureatine, in partnership with Apex Fitness Gym.
 
 ## Publish to GitHub Pages

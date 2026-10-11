@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
 import gsap from 'gsap'
 import { supabase } from './supabase'
+import ChatWidget from './ChatWidget'
 import { appHref, currentRoute, shakeImage } from './urls'
 import { RewardsPage, LeaderboardPage } from './CommunityPages'
 import '@fontsource/dm-sans/latin-400.css'
@@ -144,7 +145,7 @@ function App() {
   }, [])
 
   return <NavigationContext.Provider value={go}><div ref={root} className={paused ? 'site motion-paused' : 'site'}>
-    <Atmosphere paused={paused}/><ScrollTools paused={paused} toggle={() => setPaused(value => !value)}/>
+    <Atmosphere paused={paused}/>{import.meta.env.VITE_CHAT_ENABLED !== 'false' && <ChatWidget/>}<ScrollTools paused={paused} toggle={() => setPaused(value => !value)}/>
     <a href="#main" className="skip">Skip to content</a>
     <div className="announcement">A little ritual. A stronger you. <span>Meet Aureatine x Apex <Icon name="northeast" size={12}/></span></div>
     <header className="header elevated-nav"><Link to="/" className="wordmark" aria-label="Aureatine x Apex home">aureatine</Link>
