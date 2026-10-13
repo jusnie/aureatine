@@ -1,0 +1,4 @@
+# Public, consent-gated assistant; no privileged Supabase key or database access.
+# Public access preserves the existing guest chat experience, not an auth bypass.
+[functions.aureatine-ai]
+verify_jwt = false

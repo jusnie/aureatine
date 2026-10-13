@@ -5,7 +5,7 @@
 
 ## Activate real accounts
 1. Create a Supabase project. Enable Email authentication and email confirmations.
-2. Run `supabase/schema.sql` in the Supabase SQL Editor.
+2. Run `supabase/aureatine-full-setup.sql` in the Supabase SQL Editor.
 3. Copy `.env.example` to `.env`. Set the project URL and public publishable key. NEVER use a service-role key in the frontend.
 4. Configure Authentication > URL Configuration: set your deployed Site URL and add exact allowed redirect URLs for `/login` and `/reset-password` on your domain (and the preview domain if testing there).
 5. Configure production SMTP, authentication rate limits, password policy (12+ characters), and email templates in Supabase. Restart Vite after changing environment values.
@@ -35,7 +35,7 @@ Add your real privacy policy and any legally required consent/terms before produ
 Gym location now uses the supplied APEX Fitness Gym listing and a free Google Maps embed with no custom overlay. Reviews button opens the Google listing (select its Reviews tab). No review feed/API, copied review data, or gym media gallery. The earlier request for gym photos is superseded: user explicitly does not want gym photos/videos. The existing shake concept image remains separate from gym media. Verify Google's embedded location pin in the public preview before launch; the exact-listing link is included as fallback.
 
 ## Community leaderboard
-New route: `/leaderboard`. Run `supabase/leaderboard.sql` AFTER `schema.sql` as the trusted database owner to enable it. The public read-only view deliberately exposes ONLY opt-in display names, points and computed all-time rank. Users cannot edit wallet points. Equal points share a rank. The UI lists/searches the top 50 returned members, not a full user directory.
+New route: `/leaderboard`. The leaderboard is included in `supabase/aureatine-full-setup.sql`; run only that full file as the trusted database owner. The public read-only view deliberately exposes ONLY opt-in display names, points and computed all-time rank. Users cannot edit wallet points. Equal points share a rank. The UI lists/searches the top 50 returned members, not a full user directory.
 Signed-in members can explicitly opt in with a display name and consent checkbox, change it, or remove themselves. No email addresses or user IDs are exposed publicly. Display-name moderation and a public privacy policy should be established before launch. Without Supabase, no fake rows or points appear; refresh is disabled and joining directs to real account setup. Authenticated opt-in and database permissions require testing against your connected project before production.
 
 ## Planned staff QR workflow

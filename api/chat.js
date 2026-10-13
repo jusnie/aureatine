@@ -22,8 +22,8 @@ async function getBody(req) {
   return JSON.parse(text)
 }
 export default async function handler(req, res) {
-  const enabled = process.env.CHAT_ENABLED !== 'false' && Boolean(process.env.GEMINI_API_KEY)
-  if (req.method === 'GET') return reply(res, 200, { available: enabled, nutritionCalculator: true, gymGuidanceVersion: 2, adultOnly: true })
+  const enabled = process.env.CHAT_ENABLED !== 'false' && Boolean(process.env.NVIDIA_API_KEY)
+  if (req.method === 'GET') return reply(res, 200, { available: enabled, provider: 'nvidia', nutritionCalculator: true, gymGuidanceVersion: 2, adultOnly: true })
   if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); return reply(res, 405, { error: 'This method is not supported.' }) }
   if (!enabled) return reply(res, 503, { error: 'The assistant is not connected yet. Please try again after setup.' })
   const origin = req.headers.origin
@@ -39,6 +39,7 @@ export default async function handler(req, res) {
   let body
   try { body = await getBody(req) } catch { return reply(res, 400, { error: 'The message is invalid or too long.' }) }
   if (!body || body.consent !== true || !Array.isArray(body.messages) || body.messages.length < 1 || body.messages.length > 12) return reply(res, 400, { error: 'Please agree to message processing and send a shorter conversation.' })
+  if (body.provider !== 'nvidia') return reply(res, 400, { error: 'Our AI provider has changed. Refresh this page and agree to NVIDIA message processing before sending.' })
   let total = 0
   for (const message of body.messages) {
     if (!message || !['user','assistant'].includes(message.role) || typeof message.content !== 'string' || !message.content.trim() || message.content.length > 1600) return reply(res, 400, { error: 'Please keep each message under 1,600 characters.' })
@@ -54,18 +55,20 @@ export default async function handler(req, res) {
     if (!estimate.ok) return reply(res, 400, { error: estimate.error })
     calculatorContext = '\nCALCULATOR ESTIMATES (computed by this server): ' + nutritionContext(estimate)
   }
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite'
-  if (!/^[a-zA-Z0-9.-]+$/.test(model)) return reply(res, 503, { error: 'The assistant needs a configuration update.' })
+  const model = process.env.NVIDIA_MODEL || 'z-ai/glm-5.3-flash'
+  if (!/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/.test(model)) return reply(res, 503, { error: 'The assistant needs a configuration update.' })
   try {
-    const result = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    const result = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
       method: 'POST', signal: AbortSignal.timeout(20000),
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: INSTRUCTIONS + calculatorContext }] }, contents: body.messages.map(message => ({ role: message.role === 'assistant' ? 'model' : 'user', parts: [{ text: message.content }] })), generationConfig: { temperature: .35, maxOutputTokens: 600 } })
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.NVIDIA_API_KEY}` },
+      body: JSON.stringify({ model, messages: [{ role: 'system', content: INSTRUCTIONS + calculatorContext }, ...body.messages.map(({role,content}) => ({role,content}))], temperature: .5, top_p: 1, max_tokens: 1024, stream: false })
     })
     if (!result.ok) return reply(res, result.status === 429 ? 429 : 502, { error: result.status === 429 ? 'The AI provider has reached its usage limit. Please try later.' : 'The AI provider is unavailable or needs configuration. Please try later.' })
     const data = await result.json()
-    const text = data.candidates?.[0]?.content?.parts?.filter(part => !part.thought && typeof part.text === 'string').map(part => part.text).join('\n').trim()
-    if (!text) return reply(res, 422, { error: 'I couldn’t answer that safely. Please try a general fitness or business question.' })
+    // Use only the final answer, never reasoning_content or other provider metadata.
+    const content = data.choices?.[0]?.message?.content
+    const text = typeof content === 'string' ? content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*$/gi, '').trim() : ''
+    if (!text) return reply(res, 422, { error: 'The AI provider returned no answer. Please try again.' })
     return reply(res, 200, { reply: text.slice(0, 8000) })
   } catch { return reply(res, 504, { error: 'The assistant took too long to respond. Please try again.' }) }
 }

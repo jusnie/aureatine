@@ -3,4 +3,6 @@ dist/
 .env
 .env.*
 
+# Safe public templates/config only; all other environment files stay ignored.
 !.env.example
+!.env.production
