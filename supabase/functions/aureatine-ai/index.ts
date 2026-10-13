@@ -151,51 +151,68 @@ async function handler(req, res) {
   if (!/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/.test(model)) return reply(res, 503, { error: 'The assistant needs a configuration update.' })
   const streaming = body.stream === true && typeof res.write === 'function'
   const controller = new AbortController()
+  const deadline = Date.now() + 20000
   const timeout = setTimeout(() => controller.abort('timeout'), 20000)
   const disconnected = () => controller.abort('disconnected')
   res.once?.('close', disconnected)
   let started = false
   const send = data => { if (!res.destroyed && !res.writableEnded) res.write(`data: ${JSON.stringify(data)}\n\n`) }
   try {
-    const result = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-      method: 'POST', signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Deno.env.get('NVIDIA_API_KEY')}` },
-      body: JSON.stringify({ model, messages: [{ role: 'system', content: INSTRUCTIONS + calculatorContext + (calculatorContext ? '\nKeep this explanation under 180 words.' : '\nFor simple questions answer in one or two sentences. Otherwise use at most 120 words.') }, ...body.messages.map(({role,content}) => ({role,content}))], temperature: .5, top_p: 1, max_tokens: calculatorContext ? 768 : 384, stream: streaming })
-    })
-    if (!result.ok) return reply(res, result.status === 429 ? 429 : 502, { error: result.status === 429 ? 'The AI provider has reached its usage limit. Please try later.' : 'The AI provider is unavailable or needs configuration. Please try later.' })
-    if (!streaming) {
-      const data = await result.json()
-      const filter=finalAnswerFilter(), content=data.choices?.[0]?.message?.content
-      const text=typeof content==='string'?(filter.push(content)+filter.finish()).trim():''
-      if(!text)return reply(res,422,{error:'The AI provider returned no answer. Please try again.'})
-      return reply(res,200,{reply:text.slice(0,8000)})
+    // Retry only a completed, empty answer, within the original deadline.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const result = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST', signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Deno.env.get('NVIDIA_API_KEY')}` },
+        body: JSON.stringify({ model, messages: [{ role: 'system', content: INSTRUCTIONS + calculatorContext + (calculatorContext ? '\nKeep this explanation under 180 words.' : '\nFor simple questions answer in one or two sentences. Otherwise use at most 120 words.') }, ...body.messages.map(({role,content}) => ({role,content}))], temperature: .5, top_p: 1, max_tokens: attempt ? 1536 : calculatorContext ? 768 : 384, stream: streaming })
+      })
+      if (!result.ok) {
+        const error = result.status === 429 ? 'The AI provider has reached its usage limit. Please try later.' : 'The AI provider is unavailable or needs configuration. Please try later.'
+        await result.body?.cancel?.()
+        if (started) { send({type:'error',error}); res.end(); return }
+        return reply(res, result.status === 429 ? 429 : 502, {error})
+      }
+      const mayRetry = () => attempt === 0 && !controller.signal.aborted && deadline - Date.now() >= 4000
+      if (!streaming) {
+        const data = await result.json()
+        const filter=finalAnswerFilter(), content=data.choices?.[0]?.message?.content
+        const text=typeof content==='string'?(filter.push(content)+filter.finish()).trim():''
+        const choice = data.choices?.[0]
+        if (choice?.finish_reason === 'content_filter' || choice?.message?.refusal) return reply(res,422,{error:'The provider could not answer this request. Ask a general fitness question instead.'})
+        if (!text && ['stop','length'].includes(choice?.finish_reason) && mayRetry()) continue
+        if(!text)return reply(res,422,{error:'NVIDIA finished without an answer. Please try again shortly.'})
+        return reply(res,200,{reply:text.slice(0,8000)})
+      }
+      if (!started) {
+      res.statusCode=200
+      res.setHeader('Content-Type','text/event-stream; charset=utf-8')
+      res.setHeader('Cache-Control','no-cache, no-transform')
+      res.setHeader('X-Accel-Buffering','no')
+      res.setHeader('X-Content-Type-Options','nosniff')
+      res.flushHeaders?.();started=true
+      send({type:'start'})
+      }
+      const filter=finalAnswerFilter();let answer='',complete=false,finishReason=null,refused=false
+      const emit=piece=>{if(!piece)return;const text=piece.slice(0,8000-answer.length);answer+=text;if(text)send({type:'delta',text})}
+      for await(const raw of readSSE(result.body)){
+        if(controller.signal.aborted)throw new Error('aborted')
+        if(raw==='[DONE]'){complete=true;break}
+        const event=JSON.parse(raw)
+        if(event.error)throw new Error('Provider stream error')
+        const choice=event.choices?.[0]
+        // Never forward reasoning_content, tool calls, or provider metadata.
+        if(choice?.delta?.refusal) refused=true
+        if(typeof choice?.delta?.content==='string')emit(filter.push(choice.delta.content))
+        if(choice?.finish_reason){finishReason=choice.finish_reason;complete=true;break}
+        if(answer.length>=8000){finishReason='length';complete=true;break}
+      }
+      emit(filter.finish())
+      if(!complete)throw new Error('Stream interrupted')
+      if(!answer.trim() && !refused && ['stop','length',null].includes(finishReason) && mayRetry()) continue
+      if(finishReason==='content_filter' || refused)send({type:'error',error:'The provider stopped this answer. Ask a general fitness question instead.'})
+      else if(!answer.trim())send({type:'error',error:'NVIDIA finished without an answer. Please try again shortly.'})
+      else send({type:'done',truncated:finishReason==='length'})
+      res.end();return
     }
-    res.statusCode=200
-    res.setHeader('Content-Type','text/event-stream; charset=utf-8')
-    res.setHeader('Cache-Control','no-cache, no-transform')
-    res.setHeader('X-Accel-Buffering','no')
-    res.setHeader('X-Content-Type-Options','nosniff')
-    res.flushHeaders?.();started=true
-    send({type:'start'})
-    const filter=finalAnswerFilter();let answer='',complete=false,finishReason=null
-    const emit=piece=>{if(!piece)return;const text=piece.slice(0,8000-answer.length);answer+=text;if(text)send({type:'delta',text})}
-    for await(const raw of readSSE(result.body)){
-      if(controller.signal.aborted)throw new Error('aborted')
-      if(raw==='[DONE]'){complete=true;break}
-      const event=JSON.parse(raw)
-      if(event.error)throw new Error('Provider stream error')
-      const choice=event.choices?.[0]
-      // Never forward reasoning_content, tool calls, or provider metadata.
-      if(typeof choice?.delta?.content==='string')emit(filter.push(choice.delta.content))
-      if(choice?.finish_reason){finishReason=choice.finish_reason;complete=true;break}
-      if(answer.length>=8000){finishReason='length';complete=true;break}
-    }
-    emit(filter.finish())
-    if(!complete)throw new Error('Stream interrupted')
-    if(!answer.trim())send({type:'error',error:'The provider returned no answer. Please try again.'})
-    else if(finishReason==='content_filter')send({type:'error',error:'The provider stopped this answer. Ask a general fitness question instead.'})
-    else send({type:'done',truncated:finishReason==='length'})
-    res.end()
   } catch {
     if(controller.signal.reason==='disconnected')return
     if(started){send({type:'error',error:'The response was interrupted. Any text above is incomplete; you can try again.'});res.end()}
