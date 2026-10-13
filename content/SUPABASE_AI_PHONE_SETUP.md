@@ -47,3 +47,5 @@ No changes to membership SQL are required. This Edge Function is separate from y
 ## Maintenance and tests
 `node scripts/prepare-supabase-chat.mjs` regenerates the single file from the canonical API logic and calculator code. Run this after changing `api/chat.js` or `shared/nutrition.js`, then redeploy the function. It replaces Node environment/body-length calls with Deno-compatible equivalents and adds bounded request reading and CORS.
 `node checks/supabase-chat.mjs` tests the generated file using Web Request/Response and mocked Deno/provider APIs. It covers preflight/origins, explicit NVIDIA consent, adult gates, size limits, final-answer parsing, calculator recalculation and missing-secret behavior. This is local validation, not a live Supabase deployment or provider test. Never claim a successful deployment from these tests alone.
+
+The later latency fix targets Vercel SSE streaming. This optional dashboard adapter remains buffered JSON, which the updated frontend supports. Use the selected Vercel deployment for streaming; do not describe this unused Edge Function as a deployed streaming backend.
