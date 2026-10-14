@@ -24,7 +24,7 @@ export function MemberProfilePage({ session, Link, onBalanceChange }) {
 function MemberProfile({ session, Link, onBalanceChange }) {
   const [isAdmin,setIsAdmin] = useState(false)
   const [labels,setLabels] = useState([])
-  useEffect(()=>{let active=true;supabase.rpc('get_my_labels').then(({data,error})=>{if(active)setLabels(!error&&Array.isArray(data)?data:[])}).catch(()=>{if(active)setLabels([])});return()=>{active=false}},[session.user.id])
+  useEffect(()=>{let active=true;supabase.rpc('get_my_labels').then(({data,error})=>{if(!active)return;if(!error&&Array.isArray(data)){setLabels(data);return}return supabase.rpc('get_my_owner_label').then(({data:owner,error:ownerError})=>{if(active)setLabels(!ownerError&&(owner==='APEX'||owner==='AUREATINE')?[owner]:[])})}).catch(()=>{if(active)setLabels([])});return()=>{active=false}},[session.user.id])
   useEffect(()=>{let active=true;supabase.rpc('get_my_admin_status').then(({data,error})=>{if(active)setIsAdmin(!error&&data===true)}).catch(()=>{if(active)setIsAdmin(false)});return()=>{active=false}},[session.user.id])
   const [profile, setProfile] = useState(null), [displayName, setDisplayName] = useState(''), [username, setUsername] = useState('')
   const [photo, setPhoto] = useState(''), [qr, setQr] = useState(''), [balance, setBalance] = useState(null), [roles, setRoles] = useState([])

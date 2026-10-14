@@ -3,6 +3,12 @@
 export const ASSIGNABLE_LABELS = ['MEMBER', 'STUDENT', 'STAFF']
 const LABEL_ORDER = ['APEX', 'AUREATINE', 'MEMBER', 'STUDENT', 'STAFF']
 
+// Older database responses only return owner_label (APEX or AUREATINE). Use it until the labels list is live.
+export function labelsOf(entry) {
+  if (Array.isArray(entry?.labels)) return entry.labels
+  return entry?.owner_label ? [entry.owner_label] : []
+}
+
 export function orderedLabels(labels) {
   return Array.isArray(labels) ? LABEL_ORDER.filter(label => labels.includes(label)) : []
 }
