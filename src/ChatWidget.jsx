@@ -1,3 +1,4 @@
+import { CHAT_BROWSER_TIMEOUT_MS } from '../shared/chatTiming.js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './chat.css'
 import NutritionCalculator from './NutritionCalculator'
@@ -77,7 +78,7 @@ export default function ChatWidget({ paused = false }) {
     let collected='',finished=false,updateTimer=null,truncated=false
     const publish=()=>{updateTimer=null;if(request.current!==controller||controller.signal.aborted||!collected)return
       setMessages(previous=>previous.some(item=>item.id===replyId)?previous.map(item=>item.id===replyId?{...item,content:collected}:item):[...previous,{id:replyId,role:'assistant',content:collected}])}
-    const timer=setTimeout(()=>controller.abort('timeout'),25000)
+    const timer=setTimeout(()=>controller.abort('timeout'),CHAT_BROWSER_TIMEOUT_MS)
     try {
       const result=await fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({provider:'nvidia',stream:true,consent:true,adultConfirmed:true,messages:history,...(calculator?{calculator:estimate.profile,calculatorConsent:true}:{})})})
       if(result.headers.get('content-type')?.includes('text/event-stream')&&result.ok){
@@ -104,7 +105,7 @@ export default function ChatWidget({ paused = false }) {
       if(truncated)setError('This answer reached its length limit. Ask a follow-up for more detail.')
     } catch(failure) {
       if(request.current===controller&&(!controller.signal.aborted||controller.signal.reason==='timeout')){
-        publish();setError((controller.signal.aborted?'NVIDIA took too long. Any partial answer is kept above; try again shortly.':failure.message)+(calculator?' Your local estimates are still in the Calculator tab.':''))
+        publish();setError((controller.signal.aborted?(collected.trim() ? 'The request timed out. The answer above is incomplete; try again shortly.' : 'The request timed out before an answer arrived. Please try again shortly.'):failure.message)+(calculator?' Your local estimates are still in the Calculator tab.':''))
         if(!calculator)setDraft(text)
       }
     } finally {

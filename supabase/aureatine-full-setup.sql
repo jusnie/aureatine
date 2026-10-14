@@ -547,12 +547,12 @@ alter table public.member_profiles add column if not exists share_leaderboard_ph
 grant update(share_leaderboard_photo) on public.member_profiles to authenticated;
 drop function if exists public.get_leaderboard_entries();
 create function public.get_leaderboard_entries()
-returns table(rank bigint,display_name text,points integer,is_current_user boolean,leaderboard_avatar_path text,is_admin boolean)
+returns table(rank bigint,display_name text,points integer,is_current_user boolean,leaderboard_avatar_path text,is_admin boolean,community_id uuid)
 language sql stable security definer set search_path='' as $$
  select rank() over(order by w.points desc),p.display_name,w.points,
  coalesce(p.user_id=auth.uid(),false),
  case when p.share_leaderboard_photo and p.avatar_path is not null then p.community_id::text||'/avatar.webp' else null end,
- exists(select 1 from public.app_admins a where a.user_id=p.user_id)
+ exists(select 1 from public.app_admins a where a.user_id=p.user_id),p.community_id
  from public.member_profiles p join public.wallets w on w.user_id=p.user_id
  join public.leaderboard_profiles l on l.user_id=p.user_id
  where l.opted_in=true
@@ -802,6 +802,37 @@ end;$$;
 revoke all on function public.admin_update_member(uuid,text,text,text,boolean,boolean) from public,anon;
 grant execute on function public.admin_update_member(uuid,text,text,text,boolean,boolean) to authenticated;
 -- END MODULE: unique-names-and-admin-moderation
+
+-- BEGIN MODULE: leaderboard-member-profile
+-- Public community IDs are not auth IDs, QR codes or membership credentials.
+-- Bio/social visibility stays authenticated-only, matching community search.
+create or replace function public.get_leaderboard_member_profile(p_member uuid)
+returns jsonb language plpgsql stable security definer set search_path='' as $$
+declare target_uid uuid; card jsonb; position bigint; member_points integer; photo_path text;
+begin
+ if auth.uid() is null then return jsonb_build_object('ok',false,'code','SIGN_IN'); end if;
+ select p.user_id into target_uid from public.member_profiles p where p.community_id=p_member;
+ if target_uid is null or exists(select 1 from public.member_blocks b
+   where (b.blocker=auth.uid() and b.blocked=target_uid) or (b.blocker=target_uid and b.blocked=auth.uid())) then
+   return jsonb_build_object('ok',false,'code','UNAVAILABLE');
+ end if;
+ card:=public.member_community_card(target_uid);
+ -- Rank across ALL opted-in members, not only the first 50 or the viewer's search.
+ select r,points into position,member_points from (
+   select p.user_id,w.points,rank() over(order by w.points desc) r
+   from public.member_profiles p join public.wallets w on w.user_id=p.user_id
+   join public.leaderboard_profiles l on l.user_id=p.user_id where l.opted_in=true
+ ) standings where user_id=target_uid;
+ select p.community_id::text||'/avatar.webp' into photo_path
+ from public.member_profiles p join public.leaderboard_profiles l on l.user_id=p.user_id
+ where p.user_id=target_uid and l.opted_in and p.share_leaderboard_photo and p.avatar_path is not null;
+ return jsonb_build_object('ok',true,'profile',card||jsonb_build_object(
+   'rank',position,'points',member_points,'leaderboard_avatar_path',photo_path,
+   'is_admin',exists(select 1 from public.app_admins a where a.user_id=target_uid)));
+end;$$;
+revoke all on function public.get_leaderboard_member_profile(uuid) from public,anon;
+grant execute on function public.get_leaderboard_member_profile(uuid) to authenticated;
+-- END MODULE: leaderboard-member-profile
 
 -- Refresh REST function/table discovery after schema changes.
 NOTIFY pgrst, 'reload schema';

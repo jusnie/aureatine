@@ -90,6 +90,12 @@ function finalAnswerFilter() {
   return {push:chunk=>consume(chunk),finish:()=>consume('',true)}
 }
 
+// Keep the provider deadline below Vercel's function limit, and allow the browser
+// time to receive the server's final answer/error. Checked against vercel.json.
+const CHAT_SERVER_TIMEOUT_MS = 50_000
+const CHAT_BROWSER_TIMEOUT_MS = 65_000
+const CHAT_RECOVERY_MIN_REMAINING_MS = 12_000
+
 const buckets = new Map()
 const WINDOW = 60_000
 const INSTRUCTIONS = `You are Aureatine AI, an adult-only fitness/nutrition guide for Aureatine and APEX Fitness Gym. Match the user's English or Filipino naturally. Be friendly and practical, not a certified trainer, doctor or salesperson. Give general education, not diagnoses, treatment, guaranteed results or clinical advice. Never encourage extreme dieting, maximal lifts, training through pain or supplement doses. For urgent symptoms such as chest pain/fainting recommend prompt emergency help. For minors, pregnancy/breastfeeding, medical conditions or eating-disorder concerns avoid personalized calorie, macro, supplement and weight-change advice; recommend qualified help. Never ask for contact details, medical records, passwords or keys.
@@ -151,11 +157,11 @@ async function handler(req, res) {
   if (!/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/.test(model)) return reply(res, 503, { error: 'The assistant needs a configuration update.' })
   const streaming = body.stream === true && typeof res.write === 'function'
   const controller = new AbortController()
-  const deadline = Date.now() + 20000
-  const timeout = setTimeout(() => controller.abort('timeout'), 20000)
+  const deadline = Date.now() + CHAT_SERVER_TIMEOUT_MS
+  const timeout = setTimeout(() => controller.abort('timeout'), CHAT_SERVER_TIMEOUT_MS)
   const disconnected = () => controller.abort('disconnected')
   res.once?.('close', disconnected)
-  let started = false
+  let started = false, answerSent = false
   const send = data => { if (!res.destroyed && !res.writableEnded) res.write(`data: ${JSON.stringify(data)}\n\n`) }
   try {
     // Retry only a completed, empty answer, within the original deadline.
@@ -163,7 +169,7 @@ async function handler(req, res) {
       const result = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
         method: 'POST', signal: controller.signal,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Deno.env.get('NVIDIA_API_KEY')}` },
-        body: JSON.stringify({ model, messages: [{ role: 'system', content: INSTRUCTIONS + calculatorContext + (calculatorContext ? '\nKeep this explanation under 180 words.' : '\nFor simple questions answer in one or two sentences. Otherwise use at most 120 words.') }, ...body.messages.map(({role,content}) => ({role,content}))], temperature: .5, top_p: 1, max_tokens: attempt ? 1536 : calculatorContext ? 768 : 384, stream: streaming })
+        body: JSON.stringify({ model, messages: [{ role: 'system', content: INSTRUCTIONS + calculatorContext + (calculatorContext ? '\nKeep this explanation under 100 words. State the supplied maintenance and protein estimates accurately, then give two practical next steps. Do not repeat the full calculator input list.' : '\nFor simple questions answer in one or two sentences. Otherwise use at most 120 words.') }, ...body.messages.map(({role,content}) => ({role,content}))], temperature: .5, top_p: 1, max_tokens: attempt ? 1536 : calculatorContext ? 768 : 384, stream: streaming })
       })
       if (!result.ok) {
         const error = result.status === 429 ? 'The AI provider has reached its usage limit. Please try later.' : 'The AI provider is unavailable or needs configuration. Please try later.'
@@ -171,7 +177,7 @@ async function handler(req, res) {
         if (started) { send({type:'error',error}); res.end(); return }
         return reply(res, result.status === 429 ? 429 : 502, {error})
       }
-      const mayRetry = () => attempt === 0 && !controller.signal.aborted && deadline - Date.now() >= 4000
+      const mayRetry = () => attempt === 0 && !controller.signal.aborted && deadline - Date.now() >= CHAT_RECOVERY_MIN_REMAINING_MS
       if (!streaming) {
         const data = await result.json()
         const filter=finalAnswerFilter(), content=data.choices?.[0]?.message?.content
@@ -192,7 +198,7 @@ async function handler(req, res) {
       send({type:'start'})
       }
       const filter=finalAnswerFilter();let answer='',complete=false,finishReason=null,refused=false
-      const emit=piece=>{if(!piece)return;const text=piece.slice(0,8000-answer.length);answer+=text;if(text)send({type:'delta',text})}
+      const emit=piece=>{if(!piece)return;const text=piece.slice(0,8000-answer.length);answer+=text;if(text){answerSent ||= Boolean(text.trim());send({type:'delta',text})}}
       for await(const raw of readSSE(result.body)){
         if(controller.signal.aborted)throw new Error('aborted')
         if(raw==='[DONE]'){complete=true;break}
@@ -215,8 +221,12 @@ async function handler(req, res) {
     }
   } catch {
     if(controller.signal.reason==='disconnected')return
-    if(started){send({type:'error',error:'The response was interrupted. Any text above is incomplete; you can try again.'});res.end()}
-    else return reply(res,504,{error:'The AI provider is taking too long. Please try again shortly.'})
+    const timedOut = controller.signal.reason === 'timeout'
+    const error = timedOut
+      ? (answerSent ? 'NVIDIA reached the time limit. The answer above is incomplete; try again shortly.' : 'NVIDIA did not finish within 50 seconds. Please try again shortly.')
+      : (answerSent ? 'The response was interrupted. The answer above is incomplete; try again.' : 'The response was interrupted before an answer arrived. Please try again.')
+    if(started){send({type:'error',error});res.end()}
+    else return reply(res,timedOut ? 504 : 502,{error})
   } finally {clearTimeout(timeout);controller.abort();res.removeListener?.('close',disconnected)}
 }
 

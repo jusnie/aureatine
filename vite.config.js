@@ -2,8 +2,11 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import chatHandler from './api/chat.js'
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  if (command === 'build' && (!env.VITE_SUPABASE_URL?.trim() || !env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() || env.VITE_SUPABASE_URL.includes('YOUR-PROJECT'))) {
+    throw new Error('Missing public Supabase configuration. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY before building. Never use a service-role key.')
+  }
   for (const key of ['NVIDIA_API_KEY', 'NVIDIA_MODEL', 'CHAT_ENABLED']) if (env[key] !== undefined) process.env[key] = env[key]
   return {
     base: mode === 'pages' ? '/aureatine/' : '/',

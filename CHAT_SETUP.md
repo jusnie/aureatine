@@ -3,7 +3,7 @@
 ## Current provider
 The server is configured for `z-ai/glm-5.3-flash`, exactly as shown in the owner's NVIDIA Build screenshot, using `https://integrate.api.nvidia.com/v1/chat/completions` (OpenAI-compatible request shape; no OpenAI account/key required). This replaces Gemini; there is no silent Gemini fallback.
 
-The public model-page fetch returned a 404 in this environment. The screenshot supplies the configuration, but actual model availability, account access, latency, quotas and production eligibility have NOT been verified. Do not claim this is connected until a real authorized request succeeds after deployment.
+The model configuration comes from the owner’s NVIDIA screenshot. Real requests on the deployed NVIDIA backend have succeeded, including two-turn conversations, but intermittent timeouts also occurred. Those successes do not establish reliable latency, quotas or production licensing rights.
 
 ## Activate on hosting
 1. Deploy the updated frontend AND `api/chat.js` to a host that runs the API, such as the existing Vercel project.
@@ -12,7 +12,7 @@ The public model-page fetch returned a 404 in this environment. The screenshot s
 4. Keep the public flag `VITE_CHAT_ENABLED=true` and redeploy. Remove the obsolete `GEMINI_API_KEY`/`GEMINI_MODEL` variables from this app when no longer needed.
 5. Open the deployed site, refresh, confirm adult access, then agree to NVIDIA processing before a test message. Check the user's NVIDIA account for model access/quotas if the backend reports a provider error. GET `/api/chat` reports configured availability, not a provider health test.
 
-No key has been installed by the assistant and no live NVIDIA request has been made. Do not commit real keys to `.env.example`; it contains placeholders only. Local Vite supports the same server-only variables, but local credentials should be entered only through a secure facility on the owner's device.
+The assistant has not installed or accessed the NVIDIA secret. Benign live requests have been made through the website API to check deployments. Do not commit real keys to `.env.example`; it contains placeholders only. Local Vite supports the same server-only variables, but local credentials should be entered only through a secure facility on the owner's device.
 
 ## Existing behavior retained
 - Aureatine AI branding and chat layout, immediate shortcut submission, session-only messages, stop/clear controls and reduced motion.
@@ -61,3 +61,15 @@ The prepared server now makes at most one recovery request after a completed, em
 No automatic retries for partial answers, interrupted streams, refusals/content filtering or provider HTTP errors. SSE starts only once; a failed second request remains a proper SSE error rather than trying to send JSON headers mid-stream. A second empty completion produces an honest error. The optional buffered Supabase adapter was regenerated, but Vercel `/api/chat` remains the active hosting choice.
 
 Validation: `checks/chat-empty-retry.mjs` tests successful one-time recovery, two-turn history preservation, budgets, deadline/signal reuse, reasoning omission, exhausted retry, no retry after partial/interrupted/refused responses, retry HTTP errors and JSON compatibility. Existing API/provider/calculator/streaming/browser suites and both builds pass. AI Slop API scan: 0 errors, 1 warning for the intentionally fixed NVIDIA endpoint. No live deployment of recovery code was performed.
+
+
+## Current prepared timeout and login repair — not deployed
+Supersedes the earlier timeout figures above. Shared settings in `shared/chatTiming.js` give the NVIDIA request 50 seconds, Vercel `api/chat.js` a 60-second execution limit, and the browser a 65-second wait. The server has ten seconds of platform headroom and the browser waits beyond the platform limit to receive the outcome. These are upper limits, not a delay added to fast responses. Stop/Clear/unmount still abort promptly. Vercel acceptance and live performance of this new configuration require deployment verification.
+
+One empty-completion recovery attempt still uses the original shared server deadline; it is skipped unless at least twelve seconds remain. There is no automatic retry for timeout, partial, interrupted, refused or HTTP-error responses. Neither model identity nor secret configuration changes. A provider that takes longer than fifty seconds can still fail. Shorter calculator instructions request under 100 words and preserve the server-supplied maintenance/protein estimates and safety rules; initial/recovery token ceilings remain unchanged.
+
+Error copy distinguishes a real server timeout from a disconnected stream, and only refers to an incomplete answer above if answer text was actually received. Calculator errors continue to remind members that their local estimates remain available. Applied installed Impeccable clarification/craft guidance to these states while preserving the existing layout and Stop control; complete implementation and regression coverage follow the installed full-output guidance. No new illustrations, scripts or screenshots were introduced.
+
+The pending login repair adds the existing verified public Supabase project settings to `.env.production`, so production no longer depends on an uncommitted `.env.local`. Build configuration fails clearly if required public values are missing. Never put service-role or NVIDIA secrets in any VITE_ variable. Existing blank/stale Vercel overrides must be removed or corrected before a fresh deployment.
+
+Validation: `checks/chat-timing.mjs` covers timeout alignment, accurate pre/post-header errors, partial preservation and cleanup. `checks/chat-timing-browser.cjs` uses simulated time to verify a reply after 30 seconds succeeds and the browser aborts at 65 seconds with accurate no-answer/partial-answer messages. These are mock tests, not live NVIDIA latency measurements. Existing streaming, recovery, API, calculator, optional Supabase adapter and member-card browser checks pass. Targeted AI Slop: 0 errors, 4 warnings for existing semantic markup/fixed endpoint patterns. Prior fresh production build without local env verified the correct Supabase URL; public Auth settings returned HTTP200. No member sign-in was attempted.
