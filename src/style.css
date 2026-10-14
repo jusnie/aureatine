@@ -157,3 +157,18 @@ output.form-message{display:block}
 .reward-brand-options .reward-brand-tile .reward-brand-logo{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-width:0;height:82px;padding:4px 0;margin:0 0 12px;background:transparent;overflow:visible}
 .reward-brand-options .reward-brand-logo>img{flex:0 1 auto;min-width:0;aspect-ratio:600/240;border-radius:0;filter:none}
 @media(max-width:550px){.reward-brand-options .reward-brand-tile .reward-brand-logo{height:72px}}
+
+/* Layout polish pass: 44px tap targets, legible small labels, calmer floating controls. */
+.nav-actions>a,.nav-actions>button,.icon-link,.account-link,button[aria-label*="navigation" i]{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.nav-actions{gap:6px}
+.password-input button{min-width:44px;min-height:44px;font-size:12px;padding:0 10px}
+.motion-tools{right:16px;bottom:16px;gap:8px}
+.motion-toggle{height:44px;padding:0 16px;font-size:12px}
+.image-caption{left:24px;right:24px;bottom:18px;font-size:11px;letter-spacing:.6px;text-shadow:0 1px 6px #2a1e15cc}
+.image-top{font-size:11px;letter-spacing:1.4px}
+@media(max-width:480px){.nav-actions{gap:2px}.motion-tools{right:12px;bottom:12px}}
+.footer-top a{display:inline-flex;align-items:center;min-height:40px}
+.footer-bottom{font-size:12px;gap:14px;flex-wrap:wrap;line-height:1.6}
+.section-label,.club-kicker,.little-pill,.announcement,.round-seal,.status-chip,.subtle-status,.wallet-status,.chat-ai-badge,.hero-partnership,.partner-facebook{font-size:11px}
+.rank-table th{font-size:11px}
+@media(max-width:480px){.member-page,.shell.member-page{padding-bottom:110px}}

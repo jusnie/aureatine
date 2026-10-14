@@ -22,7 +22,7 @@ export default function MemberTasks({ userId, onBalanceChange }) {
     }catch{setMessage('Could not confirm the result. Refresh or retry this task safely—completed claims cannot award twice.')}finally{locked.current=false;if(alive.current)setBusy('')}
   }
   return <section className="member-tasks" aria-labelledby="member-tasks-title"><header className="task-section-heading"><div><h2 id="member-tasks-title">Available tasks</h2><p>Daily check-in resets at midnight, Philippine time.</p></div><button className="button outline" disabled={loading||Boolean(busy)} onClick={()=>setRefresh(n=>n+1)}>Refresh tasks</button></header>
-    {message&&<output className="member-notice" role="status">{message}</output>}
+    {message&&<output className="member-notice">{message}</output>}
     {!data?<p className="member-helper">{loading?'Loading your verified task progress…':'Task progress unavailable. No sample points or streaks are shown.'}</p>:<>
       <div className="member-streak-grid"><div><span>Daily check-in streak</span><strong>{data.daily_streak.current} <small>days</small></strong><p>Best: {data.daily_streak.best} days</p></div><div><span>Gym visit streak</span><strong>{data.gym_streak.current} <small>days</small></strong><p>Best: {data.gym_streak.best} days</p></div></div>
       <div className="member-task-grid">{[

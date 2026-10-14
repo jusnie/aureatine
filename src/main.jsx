@@ -194,8 +194,8 @@ function Auth({ page, go, session }) {
       if (result.error) throw result.error
       if (forgot) { setTone('success'); setMessage('If an account exists for that email, a reset link will arrive shortly. Check your inbox and spam folder.') }
       else if (reset) { setTone('success'); setMessage('Password updated. You can now access your account.') }
-      else if (signup && !result.data.session) { try { sessionStorage.setItem('aureatine-pending-email', String(email)) } catch {} go('/check-email') }
-      else { try { sessionStorage.setItem(flashKey, JSON.stringify({ tone: 'success', text: signup ? 'Your account is ready. Welcome to Aureatine x APEX.' : 'You are logged in successfully.' })) } catch {} go('/profile') }
+      else if (signup && !result.data.session) { try { sessionStorage.setItem('aureatine-pending-email', String(email)) } catch { /* storage may be blocked; navigation still continues */ } go('/check-email') }
+      else { try { sessionStorage.setItem(flashKey, JSON.stringify({ tone: 'success', text: signup ? 'Your account is ready. Welcome to Aureatine x APEX.' : 'You are logged in successfully.' })) } catch { /* storage may be blocked; navigation still continues */ } go('/profile') }
     } catch (error) { setTone('error'); setMessage(error.message || 'Something went wrong. Please try again.') } finally { setBusy(false) }
   }
   async function logout() { setBusy(true); const { error } = await supabase.auth.signOut(); setBusy(false); if (error) setMessage(error.message); else go('/login') }

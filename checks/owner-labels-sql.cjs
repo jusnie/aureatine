@@ -26,7 +26,7 @@ const fs = require('fs')
   assert.equal(await count('select count(*)::int n from public.staff_members where user_id=$1', [y]), 2)
   assert.equal(await count('select count(*)::int n from public.app_admins where user_id=$1', [m]), 0)
 
-  // Labels: Gian = APEX, yasuda = AUREATINE, nothing else accepted.
+  // Labels: Gian = APEX, yasuda = AUREATINE, OWNER rejected.
   assert.equal((await db.query('select label from public.owner_labels where user_id=$1', [g])).rows[0].label, 'APEX')
   assert.equal((await db.query('select label from public.owner_labels where user_id=$1', [y])).rows[0].label, 'AUREATINE')
   assert.equal(await count('select count(*)::int n from public.owner_labels'), 2)
@@ -37,34 +37,34 @@ const fs = require('fs')
   await as(m)
   await denied('select * from public.owner_labels')
   await denied("insert into public.owner_labels(user_id,label) values($1,'APEX')", [m])
-  assert.equal((await db.query('select public.get_my_owner_label() a')).rows[0].a, null)
+  assert.deepEqual((await db.query('select public.get_my_labels() a')).rows[0].a, [])
 
   // Each owner sees their own label; both opt into the leaderboard.
   await as(g)
-  assert.equal((await db.query('select public.get_my_owner_label() a')).rows[0].a, 'APEX')
+  assert.deepEqual((await db.query('select public.get_my_labels() a')).rows[0].a, ['APEX'])
   await db.query('select public.set_leaderboard_participation(true)')
   await as(y)
-  assert.equal((await db.query('select public.get_my_owner_label() a')).rows[0].a, 'AUREATINE')
+  assert.deepEqual((await db.query('select public.get_my_labels() a')).rows[0].a, ['AUREATINE'])
   await db.query('select public.set_leaderboard_participation(true)')
 
   // Leaderboard shows the label text next to the existing admin badge.
   const entries = (await db.query('select * from public.get_leaderboard_entries()')).rows
-  assert.equal(entries.find(r => r.display_name === 'Gian Pokling').owner_label, 'APEX')
-  assert.equal(entries.find(r => r.display_name === 'HALIMAW MAG YEARN').owner_label, 'AUREATINE')
+  assert.deepEqual(entries.find(r => r.display_name === 'Gian Pokling').labels, ['APEX'])
+  assert.deepEqual(entries.find(r => r.display_name === 'HALIMAW MAG YEARN').labels, ['AUREATINE'])
   assert.equal(entries.find(r => r.display_name === 'Gian Pokling').is_admin, true)
 
   // Admin list shows the same labels.
   await as(g)
   const search = (await db.query("select public.admin_search_members('',0) a")).rows[0].a
-  assert.equal(search.find(x => x.username === 'gianpogi').owner_label, 'APEX')
-  assert.equal(search.find(x => x.username === 'yasuda.dnz').owner_label, 'AUREATINE')
+  assert.deepEqual(search.find(x => x.username === 'gianpogi').labels, ['APEX'])
+  assert.deepEqual(search.find(x => x.username === 'yasuda.dnz').labels, ['AUREATINE'])
 
   // Public profile shows the label; ordinary members cannot open the admin list.
   await db.exec('reset role')
   const gianCommunity = (await db.query('select community_id from public.member_profiles where user_id=$1', [g])).rows[0].community_id
   await as(m)
   const profile = (await db.query('select public.get_leaderboard_member_profile($1) a', [gianCommunity])).rows[0].a
-  assert.equal(profile.profile.owner_label, 'APEX')
+  assert.deepEqual(profile.profile.labels, ['APEX'])
   assert.equal(profile.profile.is_admin, true)
   await denied("select public.admin_search_members('',0)")
 

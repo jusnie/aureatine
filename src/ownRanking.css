@@ -11,3 +11,6 @@
 .rank-table .leaderboard-badges .admin-badge{margin-left:0}
 .rank-table .leaderboard-badges .leaderboard-you-badge{margin-left:0;font-size:8px;padding:4px 6px}
 @media(max-width:480px){.rank-table{--leaderboard-avatar:48px}.rank-table .leaderboard-member-trigger{gap:12px}.rank-table .leaderboard-member-trigger .member-initial{font-size:18px}}
+.admin-badge.label-badge.label-member{background:#e6edd9;border-color:#7d9466;color:#324424}
+.admin-badge.label-badge.label-student{background:#e0e8ee;border-color:#6f8ea6;color:#243b4e}
+.admin-badge.label-badge.label-staff{background:#efdfc4;border-color:#9a6a35;color:#4f3212}

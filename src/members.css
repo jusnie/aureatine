@@ -11,5 +11,8 @@
 .admin-members{max-width:1000px}.admin-search{display:block;font-size:12px;margin:24px 0 16px}.admin-member-list{list-style:none;padding:0;margin:20px 0}.admin-member-list li{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:20px 0;border-bottom:1px solid #dfcdb3}.admin-member-list li>div{min-width:0;overflow-wrap:anywhere}.admin-member-list strong{font-size:14px}.admin-member-list small{display:block;margin-top:6px;color:#876b4f;font-size:11px}.admin-editor{margin-top:28px}.admin-member-list .button{flex:none}.admin-editor textarea{width:100%;min-height:110px;padding:12px;border:1px solid #d3bd9b;border-radius:8px;background:#fffbf4;margin-top:8px;font:13px 'DM Sans',sans-serif}.admin-members .community-pagination{display:flex;gap:18px;align-items:center;justify-content:center;margin:20px 0}.admin-members .community-pagination button{padding:10px 14px;border:1px solid #cfb894;border-radius:8px;background:#f9f2e5;color:#705030;cursor:pointer}
 
 /* Account badges sit under the display name, like the leaderboard. */
-.member-account-badges{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:9px}
-.member-account-badges .admin-badge{margin-left:0}
+.member-account-badges{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+.member-account-badges .admin-badge{display:inline-flex;align-items:center;min-height:26px;margin-left:0;padding:5px 10px;border-radius:6px;font-size:10px;letter-spacing:.6px}
+.label-editor{display:grid;gap:8px;margin:14px 0;padding:12px;border:1px solid #d9c6a8;border-radius:6px}
+.label-editor legend{padding:0 6px;font-weight:700}
+.label-editor .text-button{justify-self:start}

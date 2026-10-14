@@ -21,7 +21,7 @@ export default function MemberScanner({ onCode }) {
         ctx.drawImage(video.current,0,0,canvas.width,canvas.height)
         const pixels=ctx.getImageData(0,0,canvas.width,canvas.height), result=decoder(pixels.data,pixels.width,pixels.height)
         const code=result && parseMemberCode(result.data)
-        if (code) { stop(); onCode(code); setMessage('Code captured. Verify the member before awarding points.') }
+        if (code) { stop(); onCode(code); setMessage('Code captured.') }
       },250)
     } catch { stop(); if (alive.current) setMessage('Camera access failed or was blocked. Try opening the preview in a new tab, upload a QR image, or enter the member code.') }
     finally { starting.current=false; if (alive.current) setBusy(false) }
@@ -38,7 +38,7 @@ export default function MemberScanner({ onCode }) {
         const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);const image=ctx.getImageData(0,0,canvas.width,canvas.height)
         const decoder=(await import('jsqr')).default,result=decoder(image.data,image.width,image.height),code=result && parseMemberCode(result.data)
         if (!code) throw Error('No valid Aureatine member code was found in this image.')
-        if (alive.current) { onCode(code);setMessage('Code captured. Verify the member before awarding points.') }
+        if (alive.current) { onCode(code);setMessage('Code captured.') }
       } finally { bitmap.close() }
     } catch(error) { if(alive.current)setMessage(error.message || 'Could not read this QR image.') }
     finally { if(alive.current)setBusy(false) }

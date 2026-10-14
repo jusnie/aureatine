@@ -381,7 +381,7 @@ revoke all on function public.verify_member(text) from public,anon;
 grant execute on function public.verify_member(text) to authenticated;
 create or replace function public.award_member_points(p_code text,p_kind text,p_reference text,p_amount_centavos integer,p_request_id uuid)
 returns jsonb language plpgsql security definer set search_path='' as $$
-declare staff uuid:=auth.uid(); member uuid; award integer; ref text:=upper(trim(p_reference)); balance integer;
+declare staff uuid:=auth.uid(); member uuid; award integer; ref text:=case when p_kind='visit' and nullif(trim(coalesce(p_reference,'')),'') is null and p_request_id is not null then 'VISIT-'||to_char(now() at time zone 'Asia/Manila','YYYYMMDD')||'-'||upper(substr(replace(p_request_id::text,'-',''),1,10)) else upper(trim(p_reference)) end; balance integer;
  old public.member_point_events%rowtype; event_id uuid;
 begin
  if p_kind is null or p_kind not in ('visit','purchase') or not exists(
@@ -406,14 +406,14 @@ begin
  if found then
   if old.user_id is distinct from member or old.staff_id is distinct from staff or old.kind<>p_kind or old.reference<>ref or old.amount_centavos is distinct from p_amount_centavos then
    return jsonb_build_object('ok',false,'code','REQUEST_CONFLICT'); end if;
-  return jsonb_build_object('ok',true,'event_id',old.id,'points',old.points,'replayed',true);
+  return jsonb_build_object('ok',true,'event_id',old.id,'points',old.points,'replayed',true,'member_name',(select display_name from public.member_profiles where user_id=member));
  end if;
  if exists(select 1 from public.member_point_events where kind=p_kind and reference=ref) then return jsonb_build_object('ok',false,'code','DUPLICATE_REFERENCE'); end if;
  if balance::bigint+award>2147483647 then return jsonb_build_object('ok',false,'code','BALANCE_LIMIT'); end if;
  insert into public.member_point_events(request_id,user_id,staff_id,kind,reference,amount_centavos,points)
  values(p_request_id,member,staff,p_kind,ref,p_amount_centavos,award) returning id into event_id;
  update public.wallets set points=points+award,updated_at=now() where user_id=member;
- return jsonb_build_object('ok',true,'event_id',event_id,'points',award,'replayed',false);
+ return jsonb_build_object('ok',true,'event_id',event_id,'points',award,'replayed',false,'member_name',(select display_name from public.member_profiles where user_id=member));
 exception when unique_violation then
  -- This exception rolls back all writes in the block, including any wallet mutation.
  return jsonb_build_object('ok',false,'code','DUPLICATE_REFERENCE');
@@ -540,8 +540,9 @@ create table if not exists public.app_admins(user_id uuid primary key references
 alter table public.app_admins enable row level security;
 revoke all on public.app_admins from public,anon,authenticated;
 grant all on public.app_admins to service_role;
--- Display labels only (APEX or AUREATINE); they grant no database privileges beyond the existing admin/staff rows.
-create table if not exists public.owner_labels(user_id uuid primary key references auth.users(id) on delete cascade,label text not null check(label in ('APEX','AUREATINE')),created_at timestamptz not null default now());
+-- Display labels only: APEX and AUREATINE are granted by owner seeds; MEMBER, STUDENT and STAFF are assigned by label managers.
+-- Labels grant no database privileges beyond the existing admin/staff rows. A member may hold several labels.
+create table if not exists public.owner_labels(user_id uuid references auth.users(id) on delete cascade,label text not null check(label in ('APEX','AUREATINE','MEMBER','STUDENT','STAFF')),created_at timestamptz not null default now(),primary key(user_id,label));
 alter table public.owner_labels enable row level security;
 revoke all on public.owner_labels from public,anon,authenticated;
 grant all on public.owner_labels to service_role;
@@ -550,9 +551,12 @@ grant all on public.owner_labels to service_role;
 alter table public.owner_labels add column if not exists label text;
 delete from public.owner_labels where label is null;
 alter table public.owner_labels alter column label set not null;
+alter table public.owner_labels drop constraint if exists owner_labels_label_check;
+alter table public.owner_labels add constraint owner_labels_label_check check(label in ('APEX','AUREATINE','MEMBER','STUDENT','STAFF'));
 do $$begin
- if not exists(select 1 from pg_constraint where conname='owner_labels_label_check' and conrelid='public.owner_labels'::regclass) then
-  alter table public.owner_labels add constraint owner_labels_label_check check(label in ('APEX','AUREATINE'));
+ if not exists(select 1 from pg_constraint c where c.conrelid='public.owner_labels'::regclass and c.contype='p' and array_length(c.conkey,1)=2) then
+  alter table public.owner_labels drop constraint if exists owner_labels_pkey;
+  alter table public.owner_labels add primary key(user_id,label);
  end if;
 end$$;
 drop function if exists public.get_my_owner_status();
@@ -563,13 +567,13 @@ alter table public.member_profiles add column if not exists share_leaderboard_ph
 grant update(share_leaderboard_photo) on public.member_profiles to authenticated;
 drop function if exists public.get_leaderboard_entries();
 create function public.get_leaderboard_entries()
-returns table(rank bigint,display_name text,points integer,is_current_user boolean,leaderboard_avatar_path text,is_admin boolean,community_id uuid,owner_label text)
+returns table(rank bigint,display_name text,points integer,is_current_user boolean,leaderboard_avatar_path text,is_admin boolean,community_id uuid,labels text[])
 language sql stable security definer set search_path='' as $$
  select rank() over(order by w.points desc),p.display_name,w.points,
  coalesce(p.user_id=auth.uid(),false),
  case when p.share_leaderboard_photo and p.avatar_path is not null then p.community_id::text||'/avatar.webp' else null end,
  exists(select 1 from public.app_admins a where a.user_id=p.user_id),p.community_id,
- (select o.label from public.owner_labels o where o.user_id=p.user_id)
+ coalesce((select array_agg(o.label order by o.label) from public.owner_labels o where o.user_id=p.user_id),'{}'::text[])
  from public.member_profiles p join public.wallets w on w.user_id=p.user_id
  join public.leaderboard_profiles l on l.user_id=p.user_id
  where l.opted_in=true
@@ -759,9 +763,14 @@ grant execute on function public.check_member_names(text,text) to anon,authentic
 create or replace function public.get_my_admin_status() returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from public.app_admins where user_id=auth.uid())$$;
 revoke all on function public.get_my_admin_status() from public,anon;
 grant execute on function public.get_my_admin_status() to authenticated;
-create or replace function public.get_my_owner_label() returns text language sql stable security definer set search_path='' as $$select o.label from public.owner_labels o where o.user_id=auth.uid()$$;
-revoke all on function public.get_my_owner_label() from public,anon;
-grant execute on function public.get_my_owner_label() to authenticated;
+drop function if exists public.get_my_owner_label();
+create or replace function public.get_my_labels() returns text[] language sql stable security definer set search_path='' as $$select coalesce(array_agg(o.label order by o.label),'{}'::text[]) from public.owner_labels o where o.user_id=auth.uid()$$;
+revoke all on function public.get_my_labels() from public,anon;
+grant execute on function public.get_my_labels() to authenticated;
+-- Label managers: admins who hold an APEX or AUREATINE label.
+create or replace function public.get_my_label_manager() returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from public.app_admins a where a.user_id=auth.uid()) and exists(select 1 from public.owner_labels o where o.user_id=auth.uid() and o.label in ('APEX','AUREATINE'))$$;
+revoke all on function public.get_my_label_manager() from public,anon;
+grant execute on function public.get_my_label_manager() to authenticated;
 create table if not exists public.admin_member_audit(id uuid primary key default gen_random_uuid(),actor uuid references auth.users(id) on delete set null,member_id uuid references auth.users(id) on delete set null,action text not null,details jsonb not null default '{}',created_at timestamptz not null default now());
 create table if not exists public.admin_setup_markers(name text primary key,assigned_user uuid not null,created_at timestamptz not null default now());
 alter table public.admin_member_audit enable row level security;
@@ -797,7 +806,7 @@ begin
  if not public.get_my_admin_status() then raise exception 'Admin access required' using errcode='42501';end if;
  if p_offset is null or p_offset<0 or p_offset>10000 or length(coalesce(p_query,''))>60 then raise exception 'Invalid search';end if;
  select coalesce(jsonb_agg(item),'[]'::jsonb) into result from (
- select jsonb_build_object('id',p.community_id,'display_name',p.display_name,'username',p.username,'bio',p.bio,'share_photo',p.share_leaderboard_photo,'opted_in',coalesce(l.opted_in,false),'is_admin',exists(select 1 from public.app_admins a where a.user_id=p.user_id),'owner_label',(select o.label from public.owner_labels o where o.user_id=p.user_id)) item
+ select jsonb_build_object('id',p.community_id,'display_name',p.display_name,'username',p.username,'bio',p.bio,'share_photo',p.share_leaderboard_photo,'opted_in',coalesce(l.opted_in,false),'is_admin',exists(select 1 from public.app_admins a where a.user_id=p.user_id),'labels',coalesce((select array_agg(o.label order by o.label) from public.owner_labels o where o.user_id=p.user_id),'{}'::text[])) item
  from public.member_profiles p left join public.leaderboard_profiles l on l.user_id=p.user_id
  where coalesce(trim(p_query),'')='' or strpos(lower(p.display_name),lower(trim(p_query)))>0 or strpos(lower(p.username),lower(trim(p_query)))>0
  order by p.display_name,p.community_id limit 21 offset p_offset) results;
@@ -873,11 +882,28 @@ begin
  where p.user_id=target_uid and l.opted_in and p.share_leaderboard_photo and p.avatar_path is not null;
  return jsonb_build_object('ok',true,'profile',card||jsonb_build_object(
    'rank',position,'points',member_points,'leaderboard_avatar_path',photo_path,
-   'is_admin',exists(select 1 from public.app_admins a where a.user_id=target_uid),'owner_label',(select o.label from public.owner_labels o where o.user_id=target_uid)));
+   'is_admin',exists(select 1 from public.app_admins a where a.user_id=target_uid),'labels',coalesce((select array_agg(o.label order by o.label) from public.owner_labels o where o.user_id=target_uid),'{}'::text[])));
 end;$$;
 revoke all on function public.get_leaderboard_member_profile(uuid) from public,anon;
 grant execute on function public.get_leaderboard_member_profile(uuid) to authenticated;
 -- END MODULE: leaderboard-member-profile
+
+-- Label assignment: only label managers can set MEMBER, STUDENT or STAFF. APEX and AUREATINE stay owner-seeded.
+create or replace function public.admin_set_member_labels(p_member uuid,p_labels text[]) returns jsonb language plpgsql security definer set search_path='' as $$
+declare target uuid; wanted text[];
+begin
+ if not public.get_my_label_manager() then raise exception 'Label manager access required' using errcode='42501'; end if;
+ wanted:=coalesce(p_labels,'{}'::text[]);
+ if exists(select 1 from unnest(wanted) as t(l) where l not in ('MEMBER','STUDENT','STAFF')) then return jsonb_build_object('ok',false,'code','INVALID_LABEL'); end if;
+ select p.user_id into target from public.member_profiles p where p.community_id=p_member;
+ if target is null then return jsonb_build_object('ok',false,'code','NOT_FOUND'); end if;
+ delete from public.owner_labels where user_id=target and label in ('MEMBER','STUDENT','STAFF') and not (label=any(wanted));
+ insert into public.owner_labels(user_id,label) select target,t.l from unnest(wanted) as t(l) on conflict do nothing;
+ insert into public.admin_member_audit(actor,member_id,action,details) values(auth.uid(),target,'set_labels',jsonb_build_object('labels',wanted));
+ return jsonb_build_object('ok',true);
+end;$$;
+revoke all on function public.admin_set_member_labels(uuid,text[]) from public,anon;
+grant execute on function public.admin_set_member_labels(uuid,text[]) to authenticated;
 
 -- Refresh REST function/table discovery after schema changes.
 NOTIFY pgrst, 'reload schema';
