@@ -1,0 +1,65 @@
+ aislop 0.18.1  ·  the quality gate for agentic coding
+
+ Scan result  ·  aureatine  ·  javascript  ·  4 files
+
+ Scope  4 file(s) after exclusions
+ [ok] Formatting: done (0 issues, 356ms)
+ [ok] Code Quality: done (0 issues, 337ms)
+ [ok] AI Slop: done (0 issues, 261ms)
+ [!] Linting: done (13 warnings, 369ms)
+ [ok] Security: done (0 issues, 475ms)
+  > Linting
+    [WARN] Calling setState synchronously within an effect can trigger cascading renders (5)
+      src/LeaderboardAvatar.jsx:5:37
+      src/CommunityPages.jsx:57:5
+      src/MemberPages.jsx:41:5
+      +2 more location(s), use -d for full list
+      Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts
+      another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it
+      from the event that caused the change. Use an effect only when synchronizing with an external system.
+
+    [WARN] The `output` element has an implicit role of `status`. Defining this explicitly is redundant and should be
+      avoided. (3)
+      src/MemberTasks.jsx:25:49
+      src/MemberPages.jsx:104:51
+      src/MemberPages.jsx:161:51
+      Remove the redundant role `status` from the element `output`.
+
+    [WARN] Prefer `output` over `role` attribute `status`. (2)
+      src/MemberPages.jsx:160:123
+      src/MemberPages.jsx:162:50
+      Replace HTML elements with `role` attribute `status` to corresponding semantic HTML tag `output`.
+
+    [WARN] Cannot access refs during render
+      src/MemberTasks.jsx:6:119
+      React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as
+      in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your
+      component not to update as expected
+
+    [WARN] The `autoFocus` attribute is found here, which can cause usability issues for sighted and non-sighted users.
+      src/MemberPages.jsx:112:1018
+      Remove the `autoFocus` attribute.
+
+    [WARN] Unexpected empty block statements
+      src/MemberPages.jsx:134:12
+      Remove this block or add a comment inside it
+
+
+   65 / 100  Needs Work    0 errors  ·  13 warnings  ·  0 fixable
+   4 files  ·  5 engines  ·  827ms
+
+   Verdict mix: 13 style/policy  ·  13 medium-confidence
+
+ Top findings
+   #  Finding                Rule                           Status
+   5  Set state in effect    react/set-state-in-effect      5 warn
+   3  No redundant roles     jsx-a11y/no-redundant-roles    3 warn
+   2  Prefer tag over role   jsx-a11y/prefer-tag-over-role  2 warn
+   1  Empty block statement  eslint/no-empty                1 warn
+   1  No autofocus           jsx-a11y/no-autofocus          1 warn
+   1  Refs                   react/refs                     1 warn
+
+ Agent repair plan
+   Agent     aislop agent                   run a local worktree repair session
+   Provider  aislop agent --provider codex  or use --provider claude/opencode/pi
+   Preview   aislop agent plan              preview provider, worktree, findings, and publish actions

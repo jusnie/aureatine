@@ -1,0 +1,30 @@
+ aislop 0.18.1  ·  the quality gate for agentic coding
+
+ Scan result  ·  aureatine  ·  javascript  ·  1 files
+
+ Scope  1 file(s) after exclusions
+ [ok] Formatting: done (0 issues, 168ms)
+ [ok] Code Quality: done (0 issues, 143ms)
+ [!] AI Slop: done (1 warning, 128ms)
+ [ok] Linting: done (0 issues, 169ms)
+ [ok] Security: done (0 issues, 488ms)
+  > AI Slop
+    [WARN] Hardcoded environment URL in production code
+      api/chat.js:73
+      Move deployment-specific URLs to environment variables or a typed config module. Keep only stable
+      documentation/public links inline.
+
+
+   96 / 100  Healthy       0 errors  ·  1 warning  ·  0 fixable
+   1 files  ·  5 engines  ·  653ms
+
+   Verdict mix: 1 AI-slop indicators  ·  1 medium-confidence
+
+ Top findings
+   #  Finding        Rule                   Status
+   1  Hardcoded URL  ai-slop/hardcoded-url  1 warn
+
+ Agent repair plan
+   Agent     aislop agent                   run a local worktree repair session
+   Provider  aislop agent --provider codex  or use --provider claude/opencode/pi
+   Preview   aislop agent plan              preview provider, worktree, findings, and publish actions

@@ -1,0 +1,45 @@
+ aislop 0.18.1  ·  the quality gate for agentic coding
+
+ Scan result  ·  aureatine  ·  javascript  ·  4 files
+
+ Scope  4 file(s) after exclusions
+ [ok] Formatting: done (0 issues, 360ms)
+ [ok] Code Quality: done (0 issues, 345ms)
+ [!] AI Slop: done (1 warning, 310ms)
+ [!] Linting: done (3 warnings, 376ms)
+ [ok] Security: done (0 issues, 487ms)
+  > Linting
+    [WARN] Non-interactive elements should not be assigned mouse or keyboard event listeners.
+      src/ChatWidget.jsx:121:15
+      Move the handler to an interactive element, or use an appropriate interactive role.
+
+    [WARN] Prefer `dialog` over `role` attribute `dialog`.
+      src/ChatWidget.jsx:121:49
+      Replace HTML elements with `role` attribute `dialog` to corresponding semantic HTML tag `dialog`.
+
+    [WARN] Prefer `output` over `role` attribute `status`.
+      src/ChatWidget.jsx:123:328
+      Replace HTML elements with `role` attribute `status` to corresponding semantic HTML tag `output`.
+
+  > AI Slop
+    [WARN] Hardcoded environment URL in production code
+      api/chat.js:74
+      Move deployment-specific URLs to environment variables or a typed config module. Keep only stable
+      documentation/public links inline.
+
+
+   84 / 100  Healthy       0 errors  ·  4 warnings  ·  0 fixable
+   4 files  ·  5 engines  ·  845ms
+
+   Verdict mix: 3 style/policy  ·  1 AI-slop indicators  ·  4 medium-confidence
+
+ Top findings
+   #  Finding                                 Rule                                             Status
+   2  Prefer tag over role                    jsx-a11y/prefer-tag-over-role                    2 warn
+   1  Hardcoded URL                           ai-slop/hardcoded-url                            1 warn
+   1  No noninteractive element interactions  jsx-a11y/no-noninteractive-element-interactions  1 warn
+
+ Agent repair plan
+   Agent     aislop agent                   run a local worktree repair session
+   Provider  aislop agent --provider codex  or use --provider claude/opencode/pi
+   Preview   aislop agent plan              preview provider, worktree, findings, and publish actions

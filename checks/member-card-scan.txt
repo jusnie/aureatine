@@ -1,0 +1,38 @@
+ aislop 0.18.1  ·  the quality gate for agentic coding
+
+ Scan result  ·  aureatine  ·  javascript  ·  2 files
+
+ Scope  2 file(s) after exclusions
+ [ok] Formatting: done (0 issues, 212ms)
+ [!] Code Quality: done (1 warning, 191ms)
+ [ok] AI Slop: done (0 issues, 172ms)
+ [!] Linting: done (2 warnings, 214ms)
+ [ok] Security: done (0 issues, 484ms)
+  > Linting
+    [WARN] Calling setState synchronously within an effect can trigger cascading renders (2)
+      src/MemberShareCard.jsx:16:124
+      src/MemberShareCard.jsx:34:37
+      Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts
+      another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it
+      from the event that caused the change. Use an effect only when synchronizing with an external system.
+
+  > Code Quality
+    [WARN] Function nested too deeply (max: 5)
+      src/MemberShareCard.jsx:11  CardEditor · depth 6
+      Consider using early returns or extracting nested logic
+
+
+   82 / 100  Healthy       0 errors  ·  3 warnings  ·  0 fixable
+   2 files  ·  5 engines  ·  693ms
+
+   Verdict mix: 3 style/policy  ·  3 medium-confidence
+
+ Top findings
+   #  Finding              Rule                       Status
+   2  Set state in effect  react/set-state-in-effect  2 warn
+   1  Deeply nested code   complexity/deep-nesting    1 warn
+
+ Agent repair plan
+   Agent     aislop agent                   run a local worktree repair session
+   Provider  aislop agent --provider codex  or use --provider claude/opencode/pi
+   Preview   aislop agent plan              preview provider, worktree, findings, and publish actions

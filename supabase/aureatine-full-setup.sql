@@ -540,6 +540,22 @@ create table if not exists public.app_admins(user_id uuid primary key references
 alter table public.app_admins enable row level security;
 revoke all on public.app_admins from public,anon,authenticated;
 grant all on public.app_admins to service_role;
+-- Display labels only (APEX or AUREATINE); they grant no database privileges beyond the existing admin/staff rows.
+create table if not exists public.owner_labels(user_id uuid primary key references auth.users(id) on delete cascade,label text not null check(label in ('APEX','AUREATINE')),created_at timestamptz not null default now());
+alter table public.owner_labels enable row level security;
+revoke all on public.owner_labels from public,anon,authenticated;
+grant all on public.owner_labels to service_role;
+-- Upgrade owner_labels from an earlier draft that had no label column. Draft rows carry no label and
+-- grant no admin rights (admin lives in app_admins), so they are cleared before labels are enforced.
+alter table public.owner_labels add column if not exists label text;
+delete from public.owner_labels where label is null;
+alter table public.owner_labels alter column label set not null;
+do $$begin
+ if not exists(select 1 from pg_constraint where conname='owner_labels_label_check' and conrelid='public.owner_labels'::regclass) then
+  alter table public.owner_labels add constraint owner_labels_label_check check(label in ('APEX','AUREATINE'));
+ end if;
+end$$;
+drop function if exists public.get_my_owner_status();
 -- BEGIN MODULE: personal-leaderboard-standing
 -- Match the signed-in account on the server, never by a non-unique display name.
 alter table public.member_profiles add column if not exists community_id uuid not null default gen_random_uuid();
@@ -547,12 +563,13 @@ alter table public.member_profiles add column if not exists share_leaderboard_ph
 grant update(share_leaderboard_photo) on public.member_profiles to authenticated;
 drop function if exists public.get_leaderboard_entries();
 create function public.get_leaderboard_entries()
-returns table(rank bigint,display_name text,points integer,is_current_user boolean,leaderboard_avatar_path text,is_admin boolean,community_id uuid)
+returns table(rank bigint,display_name text,points integer,is_current_user boolean,leaderboard_avatar_path text,is_admin boolean,community_id uuid,owner_label text)
 language sql stable security definer set search_path='' as $$
  select rank() over(order by w.points desc),p.display_name,w.points,
  coalesce(p.user_id=auth.uid(),false),
  case when p.share_leaderboard_photo and p.avatar_path is not null then p.community_id::text||'/avatar.webp' else null end,
- exists(select 1 from public.app_admins a where a.user_id=p.user_id),p.community_id
+ exists(select 1 from public.app_admins a where a.user_id=p.user_id),p.community_id,
+ (select o.label from public.owner_labels o where o.user_id=p.user_id)
  from public.member_profiles p join public.wallets w on w.user_id=p.user_id
  join public.leaderboard_profiles l on l.user_id=p.user_id
  where l.opted_in=true
@@ -742,6 +759,9 @@ grant execute on function public.check_member_names(text,text) to anon,authentic
 create or replace function public.get_my_admin_status() returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from public.app_admins where user_id=auth.uid())$$;
 revoke all on function public.get_my_admin_status() from public,anon;
 grant execute on function public.get_my_admin_status() to authenticated;
+create or replace function public.get_my_owner_label() returns text language sql stable security definer set search_path='' as $$select o.label from public.owner_labels o where o.user_id=auth.uid()$$;
+revoke all on function public.get_my_owner_label() from public,anon;
+grant execute on function public.get_my_owner_label() to authenticated;
 create table if not exists public.admin_member_audit(id uuid primary key default gen_random_uuid(),actor uuid references auth.users(id) on delete set null,member_id uuid references auth.users(id) on delete set null,action text not null,details jsonb not null default '{}',created_at timestamptz not null default now());
 create table if not exists public.admin_setup_markers(name text primary key,assigned_user uuid not null,created_at timestamptz not null default now());
 alter table public.admin_member_audit enable row level security;
@@ -777,7 +797,7 @@ begin
  if not public.get_my_admin_status() then raise exception 'Admin access required' using errcode='42501';end if;
  if p_offset is null or p_offset<0 or p_offset>10000 or length(coalesce(p_query,''))>60 then raise exception 'Invalid search';end if;
  select coalesce(jsonb_agg(item),'[]'::jsonb) into result from (
- select jsonb_build_object('id',p.community_id,'display_name',p.display_name,'username',p.username,'bio',p.bio,'share_photo',p.share_leaderboard_photo,'opted_in',coalesce(l.opted_in,false),'is_admin',exists(select 1 from public.app_admins a where a.user_id=p.user_id)) item
+ select jsonb_build_object('id',p.community_id,'display_name',p.display_name,'username',p.username,'bio',p.bio,'share_photo',p.share_leaderboard_photo,'opted_in',coalesce(l.opted_in,false),'is_admin',exists(select 1 from public.app_admins a where a.user_id=p.user_id),'owner_label',(select o.label from public.owner_labels o where o.user_id=p.user_id)) item
  from public.member_profiles p left join public.leaderboard_profiles l on l.user_id=p.user_id
  where coalesce(trim(p_query),'')='' or strpos(lower(p.display_name),lower(trim(p_query)))>0 or strpos(lower(p.username),lower(trim(p_query)))>0
  order by p.display_name,p.community_id limit 21 offset p_offset) results;
@@ -801,6 +821,31 @@ exception when unique_violation then get stacked diagnostics collision=constrain
 end;$$;
 revoke all on function public.admin_update_member(uuid,text,text,text,boolean,boolean) from public,anon;
 grant execute on function public.admin_update_member(uuid,text,text,text,boolean,boolean) to authenticated;
+-- One-time owner-authorized seeds. Each runs only when that exact confirmed username exists; otherwise it leaves a notice and can be rerun later.
+-- @apex.fg is the APEX social handle, not a member account, so it is never seeded.
+do $$declare assigned uuid;begin
+ if not exists(select 1 from public.admin_setup_markers where name='initial-admin-gianpogi') then
+  if exists(select 1 from public.member_profiles p join auth.users u on u.id=p.user_id where lower(trim(p.username))='gianpogi' and u.email_confirmed_at is not null) then
+   assigned:=public.owner_grant_admin('gianpogi','username');
+   insert into public.admin_setup_markers(name,assigned_user) values('initial-admin-gianpogi',assigned);
+  else raise notice 'ADMIN NOT ASSIGNED: no existing email-confirmed username gianpogi. Verify that account before rerunning.';end if;
+ end if;
+ if not exists(select 1 from public.admin_setup_markers where name='initial-owner-label-gianpogi') then
+  if exists(select 1 from public.member_profiles p join auth.users u on u.id=p.user_id where lower(trim(p.username))='gianpogi' and u.email_confirmed_at is not null) then
+   assigned:=(select p.user_id from public.member_profiles p where lower(trim(p.username))='gianpogi');
+   insert into public.owner_labels(user_id,label) values(assigned,'APEX') on conflict do nothing;
+   insert into public.admin_setup_markers(name,assigned_user) values('initial-owner-label-gianpogi',assigned);
+  else raise notice 'APEX LABEL NOT ASSIGNED: no existing email-confirmed username gianpogi.';end if;
+ end if;
+ if not exists(select 1 from public.admin_setup_markers where name='initial-owner-label-yasuda.dnz') then
+  if exists(select 1 from public.member_profiles p join auth.users u on u.id=p.user_id where lower(trim(p.username))='yasuda.dnz' and u.email_confirmed_at is not null) then
+   assigned:=(select p.user_id from public.member_profiles p where lower(trim(p.username))='yasuda.dnz');
+   insert into public.owner_labels(user_id,label) values(assigned,'AUREATINE') on conflict do nothing;
+   insert into public.admin_setup_markers(name,assigned_user) values('initial-owner-label-yasuda.dnz',assigned);
+  else raise notice 'AUREATINE LABEL NOT ASSIGNED: no existing email-confirmed username yasuda.dnz.';end if;
+ end if;
+end$$;
+
 -- END MODULE: unique-names-and-admin-moderation
 
 -- BEGIN MODULE: leaderboard-member-profile
@@ -828,7 +873,7 @@ begin
  where p.user_id=target_uid and l.opted_in and p.share_leaderboard_photo and p.avatar_path is not null;
  return jsonb_build_object('ok',true,'profile',card||jsonb_build_object(
    'rank',position,'points',member_points,'leaderboard_avatar_path',photo_path,
-   'is_admin',exists(select 1 from public.app_admins a where a.user_id=target_uid)));
+   'is_admin',exists(select 1 from public.app_admins a where a.user_id=target_uid),'owner_label',(select o.label from public.owner_labels o where o.user_id=target_uid)));
 end;$$;
 revoke all on function public.get_leaderboard_member_profile(uuid) from public,anon;
 grant execute on function public.get_leaderboard_member_profile(uuid) to authenticated;

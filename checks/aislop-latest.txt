@@ -1,0 +1,348 @@
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'cli-truncate@6.1.1',
+npm warn EBADENGINE   required: { node: '>=22' },
+npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+npm warn EBADENGINE }
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'ink@7.1.1',
+npm warn EBADENGINE   required: { node: '>=22' },
+npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+npm warn EBADENGINE }
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'slice-ansi@9.0.1',
+npm warn EBADENGINE   required: { node: '>=22' },
+npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+npm warn EBADENGINE }
+
+added 186 packages, and audited 187 packages in 5s
+
+74 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+ aislop 0.18.1  ·  the quality gate for agentic coding
+
+ Scan result  ·  aureatine  ·  javascript  ·  52 files
+
+ Scope  52 file(s) after exclusions
+ [ok] Formatting: done (0 issues, 1.3s)
+ [!] Code Quality: done (3 warnings, 1.3s)
+ [x] AI Slop: done (2 errors, 34 warnings, 1.0s)
+ [x] Linting: done (25 errors, 141 warnings, 1.4s)
+ [x] Security: done (5 errors, 654ms)
+  > Linting
+    [ERROR] '__REACT_DEVTOOLS_GLOBAL_HOOK__' is not defined. (2)
+      docs/assets/index-Fi_Cm822.js:2:18150
+      docs/assets/index-Fi_Cm822.js:10:50025
+      Either define '__REACT_DEVTOOLS_GLOBAL_HOOK__' or remove the reference to it. If '__REACT_DEVTOOLS_GLOBAL_HOOK__'
+      is a global variable, add it to the 'globals' configuration.
+
+    [ERROR] 'Deno' is not defined.
+      docs/assets/index-Fi_Cm822.js:53:27292
+      Either define 'Deno' or remove the reference to it. If 'Deno' is a global variable, add it to the 'globals'
+      configuration.
+
+    [ERROR] '__magic__' is not defined.
+      docs/assets/index-Fi_Cm822.js:37:19237
+      Either define '__magic__' or remove the reference to it. If '__magic__' is a global variable, add it to the
+      'globals' configuration.
+
+    [ERROR] React Hook "useId" is called in function "nA" that is neither a React function component nor a custom React
+      Hook function. React component names must start with an uppercase letter. React Hook names must start with the
+      word "use".
+      docs/assets/index-Fi_Cm822.js:55:8840
+
+    [ERROR] React Hook "useState" is called in function "iA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:9638
+
+    [ERROR] React Hook "useRef" is called in function "iA" that is neither a React function component nor a custom React
+      Hook function. React component names must start with an uppercase letter. React Hook names must start with the
+      word "use".
+      docs/assets/index-Fi_Cm822.js:55:9720
+
+    [ERROR] React Hook "useState" is called in function "sA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:11625
+
+    [ERROR] React Hook "useEffect" is called in function "sA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:11681
+
+    [ERROR] React Hook "useState" is called in function "lA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:16535
+
+    [ERROR] React Hook "useEffect" is called in function "lA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:16621
+
+    [ERROR] React Hook "useState" is called in function "oA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:19694
+
+    [ERROR] React Hook "useState" is called in function "uA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:31519
+
+    [ERROR] React Hook "useEffect" is called in function "uA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:31661
+
+    [ERROR] React Hook "useRef" is called in function "mA" that is neither a React function component nor a custom React
+      Hook function. React component names must start with an uppercase letter. React Hook names must start with the
+      word "use".
+      docs/assets/index-Fi_Cm822.js:55:41305
+
+    [ERROR] React Hook "useEffect" is called in function "mA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:41327
+
+    [ERROR] React Hook "useRef" is called in function "gA" that is neither a React function component nor a custom React
+      Hook function. React component names must start with an uppercase letter. React Hook names must start with the
+      word "use".
+      docs/assets/index-Fi_Cm822.js:55:42392
+
+    [ERROR] React Hook "useEffect" is called in function "gA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:42414
+
+    [ERROR] React Hook "useRef" is called in function "vA" that is neither a React function component nor a custom React
+      Hook function. React component names must start with an uppercase letter. React Hook names must start with the
+      word "use".
+      docs/assets/index-Fi_Cm822.js:55:49080
+
+    [ERROR] React Hook "useState" is called in function "vA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:49101
+
+    [ERROR] React Hook "useEffect" is called in function "vA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:49123
+
+    [ERROR] React Hook "useState" is called in function "_A" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:50232
+
+    [ERROR] React Hook "useRef" is called in function "_A" that is neither a React function component nor a custom React
+      Hook function. React component names must start with an uppercase letter. React Hook names must start with the
+      word "use".
+      docs/assets/index-Fi_Cm822.js:55:50421
+
+    [ERROR] React Hook "useEffect" is called in function "_A" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:50846
+
+    [ERROR] React Hook "useState" is called in function "bA" that is neither a React function component nor a custom
+      React Hook function. React component names must start with an uppercase letter. React Hook names must start with
+      the word "use".
+      docs/assets/index-Fi_Cm822.js:55:64374
+
+    [WARN] Expected expression to be used (22)
+      docs/assets/MemberPages-BI4cS9ZN.js:2:924
+      docs/assets/browser-CvedYNk4.js:1:233
+      docs/assets/browser-CvedYNk4.js:2:7
+      +19 more location(s), use -d for full list
+      Consider using this expression or removing it
+
+    [WARN] Prefer `output` over `role` attribute `status`. (10)
+      src/MemberPages.jsx:149:123
+      src/MemberPages.jsx:151:50
+      src/RedeemableCatalog.jsx:40:211
+      +7 more location(s), use -d for full list
+      Replace HTML elements with `role` attribute `status` to corresponding semantic HTML tag `output`.
+
+    [WARN] Unexpected empty block statements (9)
+      docs/assets/MemberPages-BI4cS9ZN.js:2:33469
+      docs/assets/jsQR--A7DLV85.js:1:14363
+      docs/assets/index-Fi_Cm822.js:2:23087
+      +6 more location(s), use -d for full list
+      Remove this block or add a comment inside it
+
+    [WARN] Calling setState synchronously within an effect can trigger cascading renders (8)
+      src/MemberPages.jsx:39:5
+      src/MemberPages.jsx:58:24
+      src/MemberPages.jsx:121:7
+      +5 more location(s), use -d for full list
+      Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts
+      another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it
+      from the event that caused the change. Use an effect only when synchronizing with an external system.
+
+    [WARN] Do not use `new Array(singleArgument)`. (5)
+      docs/assets/browser-CvedYNk4.js:4:2685
+      docs/assets/jsQR--A7DLV85.js:1:1765
+      docs/assets/index-Fi_Cm822.js:10:61890
+      +2 more location(s), use -d for full list
+      It's not clear whether the argument is meant to be the length of the array or the only element. If the argument is
+      the array's length, consider using `Array.from({ length: n })`. If the argument is the only element, use
+      `[element]`.
+
+    [WARN] The `output` element has an implicit role of `status`. Defining this explicitly is redundant and should be
+      avoided. (5)
+      src/MemberPages.jsx:94:51
+      src/MemberPages.jsx:150:51
+      src/MemberTasks.jsx:25:49
+      +2 more location(s), use -d for full list
+      Remove the redundant role `status` from the element `output`.
+
+    [WARN] Stateless functional components should not use `this` (4)
+      docs/assets/jsQR--A7DLV85.js:1:6238
+      docs/assets/index-Fi_Cm822.js:2:3194
+      docs/assets/index-Fi_Cm822.js:9:19079
+      +1 more location(s), use -d for full list
+      Use props and context directly as function parameters instead of accessing them through `this`
+
+    [WARN] Parameter 'r' is declared but never used. Unused parameters should start with a '_'. (4)
+      docs/assets/index-Fi_Cm822.js:2:796
+      docs/assets/index-Fi_Cm822.js:17:9189
+      docs/assets/index-Fi_Cm822.js:18:27780
+      +1 more location(s), use -d for full list
+      Consider removing this parameter.
+
+    [WARN] Parameter 'n' is declared but never used. Unused parameters should start with a '_'. (4)
+      docs/assets/index-Fi_Cm822.js:10:123819
+      docs/assets/index-Fi_Cm822.js:13:6926
+      docs/assets/index-Fi_Cm822.js:17:11471
+      +1 more location(s), use -d for full list
+      Consider removing this parameter.
+
+    [WARN] Expected to call `super()`. (4)
+      docs/assets/index-Fi_Cm822.js:10:122739
+      docs/assets/index-Fi_Cm822.js:36:6379
+      docs/assets/index-Fi_Cm822.js:37:19040
+      +1 more location(s), use -d for full list
+      Add a `super()` call to the constructor
+
+    [WARN] Variable 'fs' is declared but never used. Unused variables should start with a '_'. (3)
+      checks/member-short-codes.cjs:2:131
+      checks/redemption-sql.cjs:3:7
+      checks/member-sql.cjs:2:131
+      Consider removing this declaration.
+
+    [WARN] Expected a conditional expression and instead saw an assignment (3)
+      docs/assets/index-Fi_Cm822.js:7:203
+      docs/assets/index-Fi_Cm822.js:9:4349
+      docs/assets/index-Fi_Cm822.js:10:24108
+      Consider wrapping the assignment in additional parentheses
+
+    [WARN] Cannot access refs during render (3)
+      src/MemberTasks.jsx:6:119
+      src/RewardRedemption.jsx:38:203
+      src/ChatWidget.jsx:120:103
+      React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as
+      in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your
+      component not to update as expected
+
+    [WARN] Parameter 'o' is declared but never used. Unused parameters should start with a '_'. (2)
+      docs/assets/index-Fi_Cm822.js:10:53920
+      docs/assets/index-Fi_Cm822.js:18:5845
+      Consider removing this parameter.
+
+    [WARN] Parameter 'i' is declared but never used. Unused parameters should start with a '_'. (2)
+      docs/assets/index-Fi_Cm822.js:17:7483
+      docs/assets/index-Fi_Cm822.js:18:14876
+      Consider removing this parameter.
+
+    [WARN] This value cannot be modified (2)
+      docs/assets/index-Fi_Cm822.js:53:74679
+      docs/assets/index-Fi_Cm822.js:55:4681
+      Modifying a value returned from a hook is not allowed. Consider moving the modification into the hook where the
+      value is constructed
+
+    ... and 48 more rules hidden (51 warnings). Run with -v or --verbose to see full output.
+
+  > Code Quality
+    [WARN] Function nested too deeply (max: 5) (3)
+      src/MemberCommunity.jsx:9  SocialLinks · depth 6
+      src/main.jsx:29            TeamBoard · depth 6
+      src/main.jsx:83            ScrollTools · depth 6
+      Consider using early returns or extracting nested logic
+
+  > AI Slop
+    [ERROR] Empty catch block swallows errors silently
+      docs/assets/index-Fi_Cm822.js:4
+      Handle errors explicitly: log with context, rethrow, or return an error value
+
+    [ERROR] Imports "pngjs" but it's not declared in package.json
+      checks/members-browser.cjs:1:1
+      Most often this is an LLM hallucinating a plausible-sounding package name. Either add the package to your
+      manifest, or correct the import. If your runtime provides it, list it under imports.provided in
+      .aislop/config.yml.
+
+    [WARN] [auto] console.log/debug/info statement left in production code (24)
+      checks/adult-access.cjs:2
+      checks/calculator-browser.cjs:2
+      checks/chat-api.mjs:23
+      +21 more location(s), use -d for full list
+      Remove debugging console statements or replace with a proper logger
+
+    [WARN] Hardcoded environment URL in production code (8)
+      checks/chat-api.mjs:3
+      checks/chat-api.mjs:14
+      checks/members-browser.cjs:3
+      +5 more location(s), use -d for full list
+      Move deployment-specific URLs to environment variables or a typed config module. Keep only stable
+      documentation/public links inline.
+
+    [WARN] [auto] Imported symbol 'nutritionContext' is never used
+      checks/nutrition-v2.mjs:2
+      Remove unused imports to keep the code clean
+
+    [WARN] [auto] "ws" is also imported on line 14. Merge into a single import statement.
+      docs/assets/index-Fi_Cm822.js:32:1
+      Two imports from the same module split readers' attention and grow the import block. Run aislop fix to merge them
+      automatically.
+
+  > Security
+    [ERROR] Direct innerHTML assignment can lead to XSS (3)
+      docs/assets/index-Fi_Cm822.js:9
+      docs/assets/index-Fi_Cm822.js:10
+      Use textContent, DOM APIs, or a sanitization library instead
+
+    [ERROR] Possible shell injection — user input in command execution
+      checks/redemption-sql.cjs:4
+      Use parameterized commands or a safe shell execution library
+
+    [ERROR] Possible SQL injection — template literal in query
+      checks/redemption-sql.cjs:4
+      Use parameterized queries or an ORM instead of string interpolation
+
+
+   43 / 100  Critical      32 errors  ·  178 warnings  ·  26 fixable
+   52 files  ·  5 engines  ·  1.8s
+
+   Verdict mix: 167 style/policy  ·  27 confirmed defects  ·  11 AI-slop indicators  ·  5 conservative security  ·  30 high-confidence, 180 medium-confidence
+
+ Top findings
+   #   Finding                   Rule                           Status
+   40  Unused variable           eslint/no-unused-vars          40 warn
+   24  console.log left in code  ai-slop/console-leftover       24 warn · 24 fixable
+   22  Unused expression         eslint/no-unused-expressions   22 warn
+   21  Rules of hooks            react-hooks/rules-of-hooks     21 err
+   14  Prefer tag over role      jsx-a11y/prefer-tag-over-role  14 warn
+    9  Empty block statement     eslint/no-empty                9 warn
+    8  Hardcoded URL             ai-slop/hardcoded-url          8 warn
+    8  Set state in effect       react/set-state-in-effect      8 warn
+    5  No redundant roles        jsx-a11y/no-redundant-roles    5 warn
+    5  Avoid new Array(n)        unicorn/no-new-array           5 warn
+   +27 more rules (11 errors, 43 warnings). Run with -v for the full list.
+
+ Agent repair plan
+   Agent     aislop agent                   run a local worktree repair session
+   Provider  aislop agent --provider codex  or use --provider claude/opencode/pi
+   Preview   aislop agent plan              preview provider, worktree, findings, and publish actions
+   Auto-fix  aislop fix                     auto-fix 26 issues

@@ -42,7 +42,7 @@ function ProfileDetails({ memberId, Link }) {
   const photo = p.leaderboard_avatar_path === `${memberId}/avatar.webp` ? p.leaderboard_avatar_path : null
   const ranked = Number.isSafeInteger(p.rank) && p.rank > 0
   return <div className="leaderboard-profile-details">
-    <header className="leaderboard-profile-identity"><LeaderboardAvatar key={photo || 'initial'} name={p.display_name} path={photo}/><div><h3>{p.display_name}</h3><p>@{p.username}</p>{p.is_admin === true && <span className="admin-badge">ADMIN</span>}{p.is_me === true && <span className="leaderboard-you-badge">You</span>}</div></header>
+    <header className="leaderboard-profile-identity"><LeaderboardAvatar key={photo || 'initial'} name={p.display_name} path={photo}/><div><h3>{p.display_name}</h3><p>@{p.username}</p>{p.is_admin === true && <span className="admin-badge">ADMIN</span>}{(p.owner_label === 'APEX' || p.owner_label === 'AUREATINE') && <span className="admin-badge">{p.owner_label}</span>}{p.is_me === true && <span className="leaderboard-you-badge">You</span>}</div></header>
     {p.bio ? <p className="leaderboard-profile-bio">{p.bio}</p> : <p className="leaderboard-profile-muted">No bio added yet.</p>}
     <SocialLinks profile={p}/>
     <div className="leaderboard-profile-standing">{ranked ? <><div><span>Leaderboard rank</span><strong>#{p.rank.toLocaleString()}</strong></div><div><span>Verified points</span><strong>{count(p.points)}</strong></div></> : <p>This member is not currently listed on the leaderboard.</p>}</div>

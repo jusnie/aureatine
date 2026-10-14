@@ -10,3 +10,11 @@ export function currentRoute() {
   return '/' + pathname.replace(/^\/+|\/+$/g, '')
 }
 export const shakeImage = `${basePath}images/shakes.jpg`
+
+// Absolute links used in Supabase emails. Production always returns to the public site, never localhost.
+export function publicUrl(path = '/') {
+  const site = (import.meta.env.VITE_PUBLIC_SITE_URL || '').trim().replace(/\/+$/, '')
+  const clean = (path.split('#')[0] || '/').replace(/^\/+|\/+$/g, '')
+  if (site) return `${site}/${clean ? clean + '/' : ''}`
+  return window.location.origin + appHref(path)
+}
