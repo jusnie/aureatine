@@ -2,3 +2,12 @@
 @media(max-width:760px){.own-ranking{padding:20px 17px;gap:13px;flex-wrap:wrap}.own-rank-marker{width:38px;height:38px}.own-rank-details{flex-basis:calc(100% - 55px)}.own-rank-details h3{font-size:18px}.own-rank-numbers{display:flex;align-items:center;flex-wrap:wrap;gap:10px;text-align:left;width:100%;padding-top:14px;border-top:1px solid #d6bd99}.own-rank-numbers>strong{font-size:25px}.own-rank-numbers>small{width:100%;margin:0}.rank-table .leaderboard-you-badge{font-size:7px;margin-left:5px;padding:3px 4px}.rank-table td:nth-child(2){overflow-wrap:anywhere}}
 .rank-table .leaderboard-photo{object-fit:cover;vertical-align:middle;flex-shrink:0}
 .admin-badge{display:inline-block;vertical-align:middle;margin-left:9px;padding:4px 7px;border:1px solid #a47b4a;border-radius:4px;background:#e4cda5;color:#593c22;font:700 9px 'DM Sans',sans-serif;line-height:1.4;letter-spacing:.5px;white-space:nowrap}
+
+/* Bigger member photo; badges sit under the display name, aligned with the name text. */
+.rank-table{--leaderboard-avatar:56px}
+.rank-table .leaderboard-member-trigger{gap:16px;font-size:15px}
+.rank-table .leaderboard-member-trigger .member-initial{width:var(--leaderboard-avatar);height:var(--leaderboard-avatar);margin:0;font-size:21px}
+.rank-table .leaderboard-badges{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;padding-left:calc(var(--leaderboard-avatar) + 16px)}
+.rank-table .leaderboard-badges .admin-badge{margin-left:0}
+.rank-table .leaderboard-badges .leaderboard-you-badge{margin-left:0;font-size:8px;padding:4px 6px}
+@media(max-width:480px){.rank-table{--leaderboard-avatar:48px}.rank-table .leaderboard-member-trigger{gap:12px}.rank-table .leaderboard-member-trigger .member-initial{font-size:18px}}
