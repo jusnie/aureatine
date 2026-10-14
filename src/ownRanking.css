@@ -14,3 +14,15 @@
 .admin-badge.label-badge.label-member{background:#e6edd9;border-color:#7d9466;color:#324424}
 .admin-badge.label-badge.label-student{background:#e0e8ee;border-color:#6f8ea6;color:#243b4e}
 .admin-badge.label-badge.label-staff{background:#efdfc4;border-color:#9a6a35;color:#4f3212}
+/* Long names stay on one line in the leaderboard; the full name is shown in the member profile. */
+.rank-table td{min-width:0}
+.rank-table .leaderboard-member-trigger{max-width:100%;min-width:0}
+.rank-table .leaderboard-member-trigger>span:last-child{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Fixed columns keep the points visible on phones; the name truncates inside the member column. */
+.rank-table table{table-layout:fixed;width:100%}
+.rank-table th:nth-child(1),.rank-table td:nth-child(1){width:15%}
+.rank-table th:nth-child(3),.rank-table td:nth-child(3){width:24%}
+/* Corner border on every member avatar (leaderboard rows and profile). */
+.avatar-frame{position:relative;display:inline-flex;flex:none;padding:3px;border-radius:50%;border:1.5px solid #b58c58;background:#f7efe2}
+.avatar-frame::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2.5px solid transparent;border-top-color:#7a4f2a;border-right-color:#7a4f2a;pointer-events:none}
+.avatar-frame .member-initial{display:flex;align-items:center;justify-content:center;border-radius:50%}

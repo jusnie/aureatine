@@ -40,3 +40,5 @@
 - Live database did not yet return `labels` or `get_my_labels`, so APEX and AUREATINE disappeared from the site. The site now falls back to `owner_label` (leaderboard, member profile, admin list) and to `get_my_owner_label` (own account page).
 - Checked against a simulated live response: the profile and leaderboard show AUREATINE. Labels, admin, leaderboard-profile, community and members browser checks pass.
 - The leaderboard only shows APEX and AUREATINE after `supabase/aureatine-full-setup.sql` is run in Supabase, because the live leaderboard function does not return owner labels yet.
+
+- Pushed owner label fallback and rebuilt Pages as aa78615c515756bc3baff7bd9aa7b4fe33c89ce0 (temporary token, not stored). SQL file unchanged in this push and still needs to be run in Supabase.
