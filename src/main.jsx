@@ -20,6 +20,15 @@ import '@fontsource/manrope/latin-500.css'
 import '@fontsource/manrope/latin-600.css'
 import '@fontsource/manrope/latin-700.css'
 import './style.css'
+// Component stylesheets load eagerly so the glass theme below always wins the cascade, including on lazily loaded pages.
+import './members.css'
+import './authStatus.css'
+import './chat.css'
+import './leaderboardProfile.css'
+import './community.css'
+import './memberShareCard.css'
+import './ownRanking.css'
+import './glass.css'
 
 function Icon({ name, size = 20 }) {
   const paths = { qr: <><path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h3v3h3v3h-6v-3M12 3v3M12 12h3M3 12h6M21 12v3"/></>, calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h3M14 14h3M7 18h3"/></>, trophy: <><path d="M8 3h8v6a4 4 0 0 1-8 0V3ZM8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 13v5M8 21h8M9 18h6v3"/></>, refresh: <><path d="M20 10a8 8 0 1 0-1 7M20 4v6h-6"/></>, search: <><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></>, arrow: <><path d="M5 12h14M13 6l6 6-6 6"/></>, northeast: <><path d="M6 18 18 6M6 6h12v12"/></>, user: <><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></>, gift: <><path d="M3 8h18v4H3zM5 12v9h14v-9M12 8v13"/><path d="M12 8C3 8 5 1 9 3c2 1 3 5 3 5Zm0 0c9 0 7-7 3-5-2 1-3 5-3 5Z"/></>, plus: <path d="M12 5v14M5 12h14"/>, pin: <><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2"/></>, cup: <><path d="m6 7 2 14h8l2-14M4 7h16M13 7l2-5h5"/></>, star: <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2L3 9.6l6.2-.9Z"/>, menu: <path d="M4 7h16M4 12h16M4 17h16"/>, close: <path d="m6 6 12 12M6 18 18 6"/>, check: <path d="m5 12 4 4L19 6"/>, mail: <><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></> }

@@ -33,6 +33,6 @@ export default function GoogleReviews() {
       <figcaption><strong>{review.name}</strong></figcaption>
     </figure>)}</div>
     <div className="review-load-controls" ref={controls}><p role="status">Showing {Math.min(visible, googleReviews.length)} of {googleReviews.length} written reviews</p><div className="review-load-buttons">{visible < googleReviews.length && <button className="button outline" aria-controls="visit-review-list" disabled={changing} onClick={() => { if (!busy.current) setVisible(n => Math.min(googleReviews.length, n + 6)) }}>Show more reviews <span aria-hidden="true">+</span></button>}<button className="button outline" aria-controls="visit-review-list" disabled={visible <= 6 || changing} onClick={showLess}>Show less <span aria-hidden="true">−</span></button></div></div>
-    <div className="visit-review-footer"><p>Original wording and ratings retained, including 4-star reviews. Duplicates and entries without a written comment omitted. Cut-off comments are labeled as excerpts. Screenshots supplied October 12, 2026—not a live feed or the complete Google listing. Reviewer statements are not verified business details.</p><a className="text-button" href={source} target="_blank" rel="noopener noreferrer">Read reviews on Google Maps ↗</a></div>
+    <div className="visit-review-footer"><p>These reviews are from the latest reviews of the gym, as of October 15, 2026.</p><a className="text-button" href={source} target="_blank" rel="noopener noreferrer">Read reviews on Google Maps ↗</a></div>
   </section>
 }

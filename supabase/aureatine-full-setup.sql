@@ -453,13 +453,15 @@ grant execute on function public.set_leaderboard_participation(boolean) to authe
 create table if not exists public.member_task_claims(
  id uuid primary key default gen_random_uuid(),
  user_id uuid not null references auth.users(id) on delete cascade,
- task text not null check(task in ('signup','daily','gym_five_days')),
+ task text not null check(task in ('signup','daily','gym_five_days','cardio')),
  period_key text not null,
  claim_day date not null,
  points integer not null check(points>0),
  created_at timestamptz not null default now(),
  unique(user_id,task,period_key)
 );
+alter table public.member_task_claims drop constraint if exists member_task_claims_task_check;
+alter table public.member_task_claims add constraint member_task_claims_task_check check(task in ('signup','daily','gym_five_days','cardio'));
 alter table public.member_task_claims enable row level security;
 revoke all on public.member_task_claims from anon,authenticated;
 grant select on public.member_task_claims to authenticated;
@@ -477,6 +479,7 @@ begin
  return jsonb_build_object('ok',false,'code','CONFIRM_EMAIL'); end if;
  if p_task='signup' then amount:=15;period:='once';
  elsif p_task='daily' then amount:=5;period:=today::text;
+ elsif p_task='cardio' then amount:=30;period:=today::text;
  elsif p_task='gym_five_days' then amount:=25;period:='once';
  else return jsonb_build_object('ok',false,'code','INVALID_TASK'); end if;
  select points into current_points from public.wallets where user_id=uid for update;
@@ -527,6 +530,7 @@ begin
  return jsonb_build_object('ok',true,'today',today,'next_reset',(today+1)::timestamp at time zone 'Asia/Manila',
  'signup_claimed',exists(select 1 from public.member_task_claims where user_id=uid and task='signup'),
  'daily_claimed',exists(select 1 from public.member_task_claims where user_id=uid and task='daily' and period_key=today::text),
+ 'cardio_claimed',exists(select 1 from public.member_task_claims where user_id=uid and task='cardio' and period_key=today::text),
  'gym_claimed',exists(select 1 from public.member_task_claims where user_id=uid and task='gym_five_days'),
  'gym_days',gym_days,'daily_streak',public.member_streak_summary(uid,'daily'),'gym_streak',public.member_streak_summary(uid,'gym'),
  'leaderboard_rank',position,'history',(select coalesce(jsonb_agg(h),'[]'::jsonb) from (select task,points,claim_day from public.member_task_claims where user_id=uid order by created_at desc limit 10) h));

@@ -1,3 +1,13 @@
+# Visual direction (current): Glass on black
+Palette: black #0B090A, red #A4161A, light grey #D3D3D3 (user-supplied). Glass surfaces are grey at 8–14% opacity with backdrop blur 18px and a 1px grey edge. Primary actions are solid red with white text (contrast above 7:1). Body text is #D3D3D3; headings are #FFFFFF.
+Background: an animated black field with two slow drifting light fields (red and grey), GPU-only transform animation, paused by the motion toggle, held still under prefers-reduced-motion.
+Motion: sections rise in on scroll (scroll-driven where supported); route changes cross-fade through View Transitions; the motion control shrinks to a state dot on phones.
+Accessibility: prefers-reduced-motion stops the background and entrances; prefers-reduced-transparency removes backdrop blur. The QR code keeps dark-on-light contrast so it scans.
+Implementation: colors converted by role in the existing stylesheets; src/glass.css loads last. Content and behavior unchanged.
+Skill guidance applied: impeccable craft floor (contrast, focus states, themed selection and scrollbars, motion on transform and opacity), taste-skill glass rules (solid fallback, reduced motion, button contrast). Glass is used as the main surface system because the brief asks for it, not as decoration only.
+
+---
+
 # Visual direction
 Warm editorial shake café: parchment #faf7f1, espresso #50392c, light brown #e9dac6. Manrope display and DM Sans body, self-hosted through npm fonts. Large asymmetric split hero with arch-topped beverage photo; compact SVG navigation; generous spacing and restrained pills. One subtle GSAP entrance, reduced-motion support. Mobile collapses cleanly; all forms have explicit pending, busy, and feedback states. String-connected founder tags; no fake reviews, balances, or nutrition claims. Impeccable craft guidance and applicable Taste Skill rules interpreted in service of this brief, not contradictory style mandates.
 

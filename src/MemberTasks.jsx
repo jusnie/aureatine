@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 const failures = { CONFIRM_EMAIL: 'Confirm your email before claiming task points.', TASK_INCOMPLETE: 'Complete staff-verified visits on five different dates first.', WALLET_UNAVAILABLE: 'Your points wallet is not ready yet.', BALANCE_LIMIT: 'Your balance limit would be exceeded.' }
+// Counts down to the next Philippine-time reset; updates once per second.
+function ResetCountdown({ until }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
+  const ms = Math.max(0, new Date(until).getTime() - now)
+  const pad = n => String(n).padStart(2, '0')
+  return <p className="task-timer">Resets in <strong>{pad(Math.floor(ms / 3600000))}:{pad(Math.floor(ms % 3600000 / 60000))}:{pad(Math.floor(ms % 60000 / 1000))}</strong></p>
+}
+const historyLabel = { signup: 'Signup bonus', daily: 'Daily check-in', cardio: 'Cardio 30 minutes', gym_five_days: 'Five gym days' }
 export default function MemberTasks({ userId, onBalanceChange }) {
   const [data,setData]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(''),[message,setMessage]=useState(''),[refresh,setRefresh]=useState(0)
   const signupRequest=useRef(null),locked=useRef(false),alive=useRef(true),onBalance=useRef(onBalanceChange);onBalance.current=onBalanceChange
@@ -27,12 +36,13 @@ export default function MemberTasks({ userId, onBalanceChange }) {
       <div className="member-streak-grid"><div><span>Daily check-in streak</span><strong>{data.daily_streak.current} <small>days</small></strong><p>Best: {data.daily_streak.best} days</p></div><div><span>Gym visit streak</span><strong>{data.gym_streak.current} <small>days</small></strong><p>Best: {data.gym_streak.best} days</p></div></div>
       <div className="member-task-grid">{[
         {key:'signup',label:'A confirmed beginning.',points:15,description:'Confirm your email. A one-time bonus for new and existing accounts.',done:data.signup_claimed,ready:true},
-        {key:'daily',label:'Check in today.',points:5,description:`One claim per Philippine calendar day. Today: ${data.today}.`,done:data.daily_claimed,ready:true},
+        {key:'daily',label:'Check in today.',points:5,description:`One claim per Philippine calendar day. Today: ${data.today}.`,done:data.daily_claimed,ready:true,repeats:true},
+        {key:'cardio',label:'Thirty minutes of cardio.',points:30,description:'Log 30 minutes of cardio today. One claim per Philippine calendar day.',done:data.cardio_claimed,ready:true,repeats:true},
         {key:'gym_five_days',label:'Five days of showing up.',points:25,description:'Visit the gym on five different dates. Staff verification required; consecutive days are not necessary.',done:data.gym_claimed,ready:data.gym_days>=5}
-      ].map(task=><article key={task.key} className="member-task-card"><span className="task-points">+{task.points} points</span><h3>{task.label}</h3><p>{task.description}</p>{task.key==='gym_five_days'&&<><progress max="5" value={Math.min(5,data.gym_days)} aria-label="Gym visit days toward five-day task"/><small>{Math.min(5,data.gym_days)} / 5 days · one-time milestone</small></>}<button className="button outline" disabled={loading||Boolean(busy)||task.done||!task.ready} onClick={()=>claim(task.key)}>{busy===task.key?'Confirming…':task.done?'Completed':!task.ready?'Keep making progress':'Claim points'}</button></article>)}</div>
+      ].map(task=><article key={task.key} className="member-task-card"><span className="task-points">+{task.points} points</span><h3>{task.label}</h3><p>{task.description}</p>{task.repeats&&<ResetCountdown until={data.next_reset}/>}{task.key==='gym_five_days'&&<><progress max="5" value={Math.min(5,data.gym_days)} aria-label="Gym visit days toward five-day task"/><small>{Math.min(5,data.gym_days)} / 5 days · one-time milestone</small></>}<button className="button outline" disabled={loading||Boolean(busy)||task.done||!task.ready} onClick={()=>claim(task.key)}>{busy===task.key?'Confirming…':task.done?'Completed':!task.ready?'Keep making progress':'Claim points'}</button></article>)}</div>
       <p className="member-helper">Streaks count consecutive Philippine dates, not repeated actions in one day. A streak remains current if you checked in yesterday; missing a full day resets it. The five-day task counts total unique visit dates, separately from your streak.</p>
 
-      {data.history?.length>0&&<details className="task-history"><summary>Recent task points</summary><ul>{data.history.map((item,i)=><li key={`${item.task}-${item.claim_day}-${i}`}><span>{item.task==='signup'?'Signup bonus':item.task==='daily'?'Daily check-in':'Five gym days'} · {item.claim_day}</span><strong>+{item.points}</strong></li>)}</ul></details>}
+      {data.history?.length>0&&<details className="task-history"><summary>Recent task points</summary><ul>{data.history.map((item,i)=><li key={`${item.task}-${item.claim_day}-${i}`}><span>{historyLabel[item.task]||item.task} · {item.claim_day}</span><strong>+{item.points}</strong></li>)}</ul></details>}
     </>}
   </section>
 }

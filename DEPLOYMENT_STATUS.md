@@ -42,3 +42,15 @@
 - The leaderboard only shows APEX and AUREATINE after `supabase/aureatine-full-setup.sql` is run in Supabase, because the live leaderboard function does not return owner labels yet.
 
 - Pushed owner label fallback and rebuilt Pages as aa78615c515756bc3baff7bd9aa7b4fe33c89ce0 (temporary token, not stored). SQL file unchanged in this push and still needs to be run in Supabase.
+
+- Glass redesign (local, not pushed): palette #0B090A / #A4161A / #D3D3D3 applied across src; glass surfaces with backdrop blur; animated background; scroll-reveal sections; route cross-fade; phone-friendly motion control. Build and build:pages passed. aislop src: 92 Healthy, 0 errors, 5 pre-existing warnings. Browser check: no horizontal overflow at 390px or 1440px; no page errors on home, about, rewards, leaderboard, login, signup. Share card restyled in the same glass system (black field, red glow, frosted identity panel, red check badges); rendered and checked with and without a photo and with a long name.
+
+- Share card redrawn (local, not pushed): fixed a drawing bug that hid rank and achievements when a photo was present. Export names unchanged.
+- Member card: smaller name over a black bottom gradient, username below, rank line; completed-tasks removed from card and share options. Local, not pushed.
+- Navigation: mobile menu opaque with stronger blur; header glass raised. Local, not pushed.
+- Staff: kind picker cards with icons and value line; scanner buttons with icons; manual code in one box per letter. Local, not pushed.
+- Rewards brands: light logo plates so black logos show; "Browse brand" styled as a button. Local, not pushed.
+- Reviews footer now reads "These reviews are from the latest reviews of the gym, as of October 15, 2026." Local, not pushed.
+- Leaderboard rank column and avatar gap tightened. Local, not pushed.
+- Open: 24-hour task timer and Cardio 30 mins task (needs product decision and SQL change).
+- Tasks: daily check-in and new Cardio 30 minutes task (30 points, once per Philippine date) show a live countdown to the midnight reset. SQL: new task name in the check constraint and claim function; existing checks pass (full-sql, tasks-sql). Local, not pushed. Run supabase/aureatine-full-setup.sql before using the Cardio task.
