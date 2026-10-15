@@ -28,7 +28,7 @@ import './leaderboardProfile.css'
 import './community.css'
 import './memberShareCard.css'
 import './ownRanking.css'
-import './glass.css'
+import './theme.css'
 
 function Icon({ name, size = 20 }) {
   const paths = { qr: <><path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h3v3h3v3h-6v-3M12 3v3M12 12h3M3 12h6M21 12v3"/></>, calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h3M14 14h3M7 18h3"/></>, trophy: <><path d="M8 3h8v6a4 4 0 0 1-8 0V3ZM8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 13v5M8 21h8M9 18h6v3"/></>, refresh: <><path d="M20 10a8 8 0 1 0-1 7M20 4v6h-6"/></>, search: <><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></>, arrow: <><path d="M5 12h14M13 6l6 6-6 6"/></>, northeast: <><path d="M6 18 18 6M6 6h12v12"/></>, user: <><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></>, gift: <><path d="M3 8h18v4H3zM5 12v9h14v-9M12 8v13"/><path d="M12 8C3 8 5 1 9 3c2 1 3 5 3 5Zm0 0c9 0 7-7 3-5-2 1-3 5-3 5Z"/></>, plus: <path d="M12 5v14M5 12h14"/>, pin: <><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2"/></>, cup: <><path d="m6 7 2 14h8l2-14M4 7h16M13 7l2-5h5"/></>, star: <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2L3 9.6l6.2-.9Z"/>, menu: <path d="M4 7h16M4 12h16M4 17h16"/>, close: <path d="m6 6 12 12M6 18 18 6"/>, check: <path d="m5 12 4 4L19 6"/>, mail: <><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></> }
@@ -91,9 +91,9 @@ function AboutPage() {
   </article>
 }
 function Atmosphere({ paused }) {
-  return <div className={paused ? 'atmosphere paused' : 'atmosphere'} aria-hidden="true"><div className="ambient-orbit orbit-one"/><div className="ambient-orbit orbit-two"/><div className="ambient-orbit orbit-three"/><svg className="ambient-lines" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice"><path d="M-200 780C160 300 410 1110 840 500S1430 240 1700 450"/><path d="M-200 805C160 325 410 1135 840 525S1430 265 1700 475"/><path d="M-200 830C160 350 410 1160 840 550S1430 290 1700 500"/></svg></div>
+  return <div className={paused ? 'atmosphere paused' : 'atmosphere'} aria-hidden="true"><div className="bg-drift drift-a"/><div className="bg-drift drift-b"/><div className="bg-drift drift-c"/><div className="bg-ring ring-a"/><div className="bg-ring ring-b"/><div className="ambient-orbit orbit-one"/><div className="ambient-orbit orbit-two"/><div className="ambient-orbit orbit-three"/><svg className="ambient-lines" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice"><path d="M-200 780C160 300 410 1110 840 500S1430 240 1700 450"/><path d="M-200 805C160 325 410 1135 840 525S1430 265 1700 475"/><path d="M-200 830C160 350 410 1160 840 550S1430 290 1700 500"/></svg></div>
 }
-function ScrollTools({ paused, toggle }) {
+function ScrollTools() {
   const meter = useRef(null)
   const [raised, setRaised] = useState(false)
   useEffect(() => {
@@ -102,7 +102,7 @@ function ScrollTools({ paused, toggle }) {
     update(); window.addEventListener('scroll', update, { passive: true }); window.addEventListener('resize', update)
     return () => { cancelAnimationFrame(frame); window.removeEventListener('scroll', update); window.removeEventListener('resize', update) }
   }, [])
-  return <><div className="reading-progress" aria-hidden="true"><div ref={meter}/></div><div className="motion-tools"><button className="motion-toggle" onClick={toggle} aria-pressed={paused} aria-label={paused ? 'Enable decorative animations' : 'Pause decorative animations'}><span className={paused ? 'motion-indicator stopped' : 'motion-indicator'}/><span>{paused ? 'Motion off' : 'Motion on'}</span></button>{raised && <button className="back-top" aria-label="Back to top" onClick={() => window.scrollTo({ top: 0, behavior: paused ? 'instant' : 'smooth' })}><Icon name="arrow" size={17}/></button>}</div></>
+  return <><div className="reading-progress" aria-hidden="true"><div ref={meter}/></div><div className="motion-tools">{raised && <button className="back-top" aria-label="Back to top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><Icon name="arrow" size={17}/></button>}</div></>
 }
 function App() {
   const [page, setPage] = useState(route)
@@ -161,7 +161,7 @@ function App() {
   }, [])
 
   return <NavigationContext.Provider value={go}><div ref={root} className={paused ? 'site motion-paused' : 'site'}>
-    <Atmosphere paused={paused}/>{import.meta.env.VITE_CHAT_ENABLED !== 'false' && <ChatWidget paused={paused}/>}<ScrollTools paused={paused} toggle={() => setPaused(value => !value)}/>
+    <Atmosphere paused={paused}/>{import.meta.env.VITE_CHAT_ENABLED !== 'false' && <ChatWidget paused={paused}/>}<ScrollTools/>
     <a href="#main" className="skip">Skip to content</a>
     <div className="announcement">A little ritual. A stronger you. <span>Meet Aureatine x APEX <Icon name="northeast" size={12}/></span></div>
     <header className="header elevated-nav"><Link to="/" className="wordmark" aria-label="Aureatine x APEX home">Aureatine</Link>

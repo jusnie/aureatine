@@ -472,23 +472,31 @@ create index if not exists member_visit_dates on public.member_point_events(user
 create or replace function public.claim_member_task(p_task text)
 returns jsonb language plpgsql security definer set search_path='' as $$
 declare uid uuid:=auth.uid(); today date:=(now() at time zone 'Asia/Manila')::date;
- amount integer; period text; current_points integer; days_count integer; claim_id uuid;
+ amount integer; period text; current_points integer; days_count integer; claim_id uuid; last_at timestamptz;
 begin
  if uid is null then return jsonb_build_object('ok',false,'code','SIGN_IN'); end if;
  if not exists(select 1 from auth.users where id=uid and email_confirmed_at is not null) then
  return jsonb_build_object('ok',false,'code','CONFIRM_EMAIL'); end if;
  if p_task='signup' then amount:=15;period:='once';
- elsif p_task='daily' then amount:=5;period:=today::text;
- elsif p_task='cardio' then amount:=30;period:=today::text;
- elsif p_task='gym_five_days' then amount:=25;period:='once';
+ elsif p_task='daily' then amount:=5;period:='rolling';
+ elsif p_task='cardio' then amount:=30;period:='rolling';
+ elsif p_task='gym_five_days' then amount:=25;period:='rolling';
  else return jsonb_build_object('ok',false,'code','INVALID_TASK'); end if;
  select points into current_points from public.wallets where user_id=uid for update;
  if not found then return jsonb_build_object('ok',false,'code','WALLET_UNAVAILABLE'); end if;
+ if p_task in ('daily','cardio','gym_five_days') then
+  select created_at into last_at from public.member_task_claims where user_id=uid and task=p_task order by created_at desc limit 1;
+  if last_at is not null and last_at>now()-interval '24 hours' then
+   return jsonb_build_object('ok',true,'awarded',false,'points',0,'balance',current_points,'code','ALREADY_CLAIMED','day',today,'available_at',last_at+interval '24 hours');
+  end if;
+  period:='rolling-'||(extract(epoch from clock_timestamp())*1000)::bigint::text;
+ end if;
  if exists(select 1 from public.member_task_claims where user_id=uid and task=p_task and period_key=period) then
  return jsonb_build_object('ok',true,'awarded',false,'points',0,'balance',current_points,'code','ALREADY_CLAIMED','day',today); end if;
  if p_task='gym_five_days' then
   select count(distinct (created_at at time zone 'Asia/Manila')::date)::integer into days_count
-  from public.member_point_events where user_id=uid and kind='visit' and created_at<=now();
+  from public.member_point_events where user_id=uid and kind='visit' and created_at<=now()
+  and created_at>coalesce((select max(created_at) from public.member_task_claims where user_id=uid and task='gym_five_days'),'-infinity'::timestamptz);
   if days_count<5 then return jsonb_build_object('ok',false,'code','TASK_INCOMPLETE','gym_days',days_count); end if;
  end if;
  if current_points::bigint+amount>2147483647 then return jsonb_build_object('ok',false,'code','BALANCE_LIMIT'); end if;
@@ -522,16 +530,21 @@ end;$$;
 revoke all on function public.member_streak_summary(uuid,text) from public,anon,authenticated;
 create or replace function public.get_member_tasks()
 returns jsonb language plpgsql stable security definer set search_path='' as $$
-declare uid uuid:=auth.uid(); today date:=(now() at time zone 'Asia/Manila')::date; gym_days integer; position bigint;
+declare uid uuid:=auth.uid(); today date:=(now() at time zone 'Asia/Manila')::date; gym_days integer; position bigint; daily_at timestamptz; cardio_at timestamptz; gym_at timestamptz;
 begin
  if uid is null then return jsonb_build_object('ok',false,'code','SIGN_IN'); end if;
- select count(distinct (created_at at time zone 'Asia/Manila')::date)::integer into gym_days from public.member_point_events where user_id=uid and kind='visit' and created_at<=now();
+ select count(distinct (created_at at time zone 'Asia/Manila')::date)::integer into gym_days from public.member_point_events where user_id=uid and kind='visit' and created_at<=now()
+ and created_at>coalesce((select max(created_at) from public.member_task_claims where user_id=uid and task='gym_five_days'),'-infinity'::timestamptz);
+ select max(created_at)+interval '24 hours' into gym_at from public.member_task_claims where user_id=uid and task='gym_five_days' and created_at>now()-interval '24 hours';
+ select max(created_at)+interval '24 hours' into daily_at from public.member_task_claims where user_id=uid and task='daily' and created_at>now()-interval '24 hours';
+ select max(created_at)+interval '24 hours' into cardio_at from public.member_task_claims where user_id=uid and task='cardio' and created_at>now()-interval '24 hours';
  select r into position from (select w.user_id,rank() over(order by w.points desc) r from public.wallets w join public.leaderboard_profiles p on p.user_id=w.user_id where p.opted_in) ranks where user_id=uid;
- return jsonb_build_object('ok',true,'today',today,'next_reset',(today+1)::timestamp at time zone 'Asia/Manila',
+ return jsonb_build_object('ok',true,'today',today,'next_reset',least(daily_at,cardio_at,gym_at),
  'signup_claimed',exists(select 1 from public.member_task_claims where user_id=uid and task='signup'),
- 'daily_claimed',exists(select 1 from public.member_task_claims where user_id=uid and task='daily' and period_key=today::text),
- 'cardio_claimed',exists(select 1 from public.member_task_claims where user_id=uid and task='cardio' and period_key=today::text),
- 'gym_claimed',exists(select 1 from public.member_task_claims where user_id=uid and task='gym_five_days'),
+ 'daily_available_at',daily_at,'cardio_available_at',cardio_at,'gym_available_at',gym_at,
+ 'daily_claimed',daily_at is not null,
+ 'cardio_claimed',cardio_at is not null,
+ 'gym_claimed',gym_at is not null,
  'gym_days',gym_days,'daily_streak',public.member_streak_summary(uid,'daily'),'gym_streak',public.member_streak_summary(uid,'gym'),
  'leaderboard_rank',position,'history',(select coalesce(jsonb_agg(h),'[]'::jsonb) from (select task,points,claim_day from public.member_task_claims where user_id=uid order by created_at desc limit 10) h));
 end;$$;
@@ -570,21 +583,32 @@ alter table public.member_profiles add column if not exists community_id uuid no
 alter table public.member_profiles add column if not exists share_leaderboard_photo boolean not null default false;
 grant update(share_leaderboard_photo) on public.member_profiles to authenticated;
 drop function if exists public.get_leaderboard_entries();
-create function public.get_leaderboard_entries()
-returns table(rank bigint,display_name text,points integer,is_current_user boolean,leaderboard_avatar_path text,is_admin boolean,community_id uuid,labels text[])
+drop function if exists public.get_leaderboard_entries(integer,integer,text);
+create index if not exists wallets_points_desc_idx on public.wallets(points desc);
+-- Paged leaderboard: ranks are global, the search is server-side, and each page is capped at 50 rows.
+create function public.get_leaderboard_entries(p_limit integer default 20,p_offset integer default 0,p_search text default '')
+returns table(rank bigint,display_name text,points integer,is_current_user boolean,leaderboard_avatar_path text,is_admin boolean,community_id uuid,labels text[],total_count bigint)
 language sql stable security definer set search_path='' as $$
- select rank() over(order by w.points desc),p.display_name,w.points,
- coalesce(p.user_id=auth.uid(),false),
- case when p.share_leaderboard_photo and p.avatar_path is not null then p.community_id::text||'/avatar.webp' else null end,
- exists(select 1 from public.app_admins a where a.user_id=p.user_id),p.community_id,
- coalesce((select array_agg(o.label order by o.label) from public.owner_labels o where o.user_id=p.user_id),'{}'::text[])
- from public.member_profiles p join public.wallets w on w.user_id=p.user_id
- join public.leaderboard_profiles l on l.user_id=p.user_id
- where l.opted_in=true
- order by w.points desc,p.display_name,p.user_id limit 50;
+ with ranked as (
+  select rank() over(order by w.points desc) as rnk,p.display_name,w.points,p.user_id,p.share_leaderboard_photo,p.avatar_path,p.community_id
+  from public.member_profiles p join public.wallets w on w.user_id=p.user_id
+  join public.leaderboard_profiles l on l.user_id=p.user_id
+  where l.opted_in=true
+ ), filtered as (
+  select *,count(*) over() as total from ranked
+  where coalesce(p_search,'')='' or display_name ilike '%'||replace(replace(replace(p_search,chr(92),chr(92)||chr(92)),'%',chr(92)||'%'),'_',chr(92)||'_')||'%'
+ )
+ select f.rnk,f.display_name,f.points,coalesce(f.user_id=auth.uid(),false),
+ case when f.share_leaderboard_photo and f.avatar_path is not null then f.community_id::text||'/avatar.webp' else null end,
+ exists(select 1 from public.app_admins a where a.user_id=f.user_id),f.community_id,
+ coalesce((select array_agg(o.label order by o.label) from public.owner_labels o where o.user_id=f.user_id),'{}'::text[]),
+ f.total
+ from filtered f
+ order by f.points desc,f.display_name,f.user_id
+ limit least(greatest(coalesce(p_limit,20),1),50) offset greatest(coalesce(p_offset,0),0);
 $$;
-revoke all on function public.get_leaderboard_entries() from public;
-grant execute on function public.get_leaderboard_entries() to anon,authenticated;
+revoke all on function public.get_leaderboard_entries(integer,integer,text) from public;
+grant execute on function public.get_leaderboard_entries(integer,integer,text) to anon,authenticated;
 create or replace function public.get_my_leaderboard_standing()
 returns jsonb language plpgsql stable security definer set search_path='' as $$
 declare uid uuid:=auth.uid(); member_name text; member_points integer; opted boolean; position bigint; list_position bigint; total bigint;

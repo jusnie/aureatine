@@ -1,0 +1,888 @@
+/* Aureatine neumorphism theme.
+   Palette (protein-shake browns): #EDE0D4 base, #E6CCB2, #DDB892, #B08968, #9C6644, #7F5539.
+   Status: success green, error red. Loaded last in main.jsx so it wins the cascade. */
+
+:root {
+  --base: #ede0d4;
+  --sand: #e6ccb2;
+  --latte: #ddb892;
+  --taupe: #b08968;
+  --caramel: #9c6644;
+  --cocoa: #7f5539;
+  --ink: #4a2f20;
+  --muted: #6b4a38;
+  --success: #2f7d4f;
+  --error: #b3261e;
+  --sh-out: 8px 8px 18px rgba(127, 85, 57, 0.22), -6px -6px 16px rgba(255, 255, 255, 0.5);
+  --sh-in: inset 4px 4px 9px rgba(127, 85, 57, 0.2), inset -4px -4px 9px rgba(255, 255, 255, 0.45);
+  --sh-press: inset 3px 3px 7px rgba(127, 85, 57, 0.24), inset -3px -3px 7px rgba(255, 255, 255, 0.4);
+  color-scheme: light;
+}
+
+html,
+body {
+  background: var(--ink);
+  color: var(--mist);
+}
+
+html {
+  scrollbar-color: var(--red) var(--ink);
+  scrollbar-width: thin;
+}
+
+::selection {
+  background: var(--red);
+  color: #ffffff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--mist);
+  outline-offset: 3px;
+}
+
+a {
+  color: var(--mist);
+  text-decoration-color: rgba(127,85,57,0.28);
+  text-underline-offset: 0.2em;
+}
+
+h1, h2, h3, h4 {
+  color: #ffffff;
+}
+
+/* Animated background: two drifting light fields behind all content. */
+.atmosphere {
+  background: var(--ink);
+}
+
+.atmosphere::before,
+.atmosphere::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.atmosphere::before {
+  width: 70vmax;
+  height: 70vmax;
+  left: -18vmax;
+  top: -24vmax;
+  background: radial-gradient(circle, rgba(156,102,68,0.5), rgba(156,102,68,0) 62%);
+  animation: glass-field-a 28s ease-in-out infinite alternate;
+}
+
+.atmosphere::after {
+  width: 60vmax;
+  height: 60vmax;
+  right: -20vmax;
+  bottom: -26vmax;
+  background: radial-gradient(circle, rgba(127,85,57,0.28), rgba(127,85,57,0) 62%);
+  animation: glass-field-b 34s ease-in-out infinite alternate;
+}
+
+.atmosphere.paused::before,
+.atmosphere.paused::after {
+  animation-play-state: paused;
+}
+
+@keyframes glass-field-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(14vw, 10vh, 0) scale(1.12); }
+}
+
+@keyframes glass-field-b {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-12vw, -8vh, 0) scale(1.1); }
+}
+
+/* Reduced transparency: glass becomes a solid dark panel. */
+@media (prefers-reduced-transparency: reduce) {
+  * {
+    
+    
+  }
+}
+
+/* Reduced motion: the background holds still. */
+@media (prefers-reduced-motion: reduce) {
+  .atmosphere::before,
+  .atmosphere::after {
+    animation: none !important;
+  }
+}
+
+/* Primary actions: red fill with white text (contrast 7:1+). */
+.button.dark {
+  background: var(--red);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(156,102,68,0.32), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition: filter 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease;
+}
+
+.button.dark:hover {
+  filter: brightness(1.12);
+  box-shadow: 0 16px 36px rgba(156,102,68,0.42), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.button.light,
+.button.outline {
+  transition: background-color 220ms ease, border-color 220ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.button.light:hover,
+.button.outline:hover {
+  background: var(--glass-strong);
+  border-color: rgba(127,85,57,0.28);
+}
+
+/* Floating controls: solid glass pill so they never mix with text underneath. */
+.motion-toggle,
+.back-top {
+  background: rgba(127,85,57,0.72);
+  color: var(--mist);
+  border-color: rgba(127,85,57,0.28);
+  box-shadow: 0 10px 30px rgba(92,61,46,0.45);
+  
+  
+}
+
+@media (max-width: 760px) {
+  .motion-tools {
+    right: 12px;
+    bottom: 12px;
+  }
+  .motion-toggle {
+    height: 36px;
+    padding: 0 11px;
+    font-size: 11px;
+  }
+}
+
+/* Page entrance: sections rise in as they enter the viewport (scroll-driven where supported). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .site section,
+    .rank-table,
+    .own-ranking {
+      animation: glass-rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 38%;
+    }
+  }
+}
+
+@keyframes glass-rise {
+  from { opacity: 0; transform: translate3d(0, 28px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Route changes: a soft cross-fade through the native View Transitions API. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: glass-leave 260ms ease both;
+  }
+  ::view-transition-new(root) {
+    animation: glass-enter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes glass-leave {
+  to { opacity: 0; transform: translate3d(0, -10px, 0); }
+}
+
+@keyframes glass-enter {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site section,
+  .rank-table,
+  .own-ranking {
+    animation: none !important;
+  }
+}
+
+/* Phones: the motion control shrinks to a state dot so it never covers card text. Its label stays for screen readers. */
+@media (max-width: 760px) {
+  .motion-toggle {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+  .motion-toggle > span:last-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+
+/* Header: blurred glass so the navigation stays readable over the glow and the content. */
+.header.elevated-nav {
+  background: rgba(127,85,57,0.74);
+  border-color: rgba(127,85,57,0.28);
+  
+  
+}
+
+@media (max-width: 760px) {
+  .header .nav {
+    z-index: 80;
+    background-color: #EDE0D4;
+    background-image: linear-gradient(180deg, rgba(34, 28, 29, 0.6), rgba(127,85,57,0.4));
+    border-color: rgba(127,85,57,0.28);
+    
+    
+  }
+  .header .nav a,
+  .header .nav button {
+    color: #ffffff;
+  }
+}
+
+/* Reward brands: a light plate keeps the black logos visible; the action reads as a button. */
+.reward-brand-options .reward-brand-tile .reward-brand-logo {
+  background: #EDE0D4 !important;
+  border-radius: 14px;
+  padding: 14px 22px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reward-brand-tile small {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(127,85,57,0.28);
+  background: rgba(127,85,57,0.45);
+  color: #ffffff;
+  transition: background-color 220ms ease, border-color 220ms ease;
+}
+
+.reward-brand-tile:hover small,
+.reward-brand-tile[aria-pressed="true"] small {
+  background: #7F5539;
+  border-color: #7F5539;
+}
+
+/* Staff kind picker: two equal cards with a title, a value line, and an icon. */
+.staff-kind-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.staff-kind-options button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  min-height: 80px;
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.staff-kind-options .kind-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.staff-kind-options .kind-title svg {
+  flex: none;
+}
+
+.staff-kind-options .kind-meta {
+  font-size: 12px;
+  opacity: 0.8;
+  padding-left: 28px;
+}
+
+@media (max-width: 520px) {
+  .staff-kind-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Scanner actions: icons and text share one line, with equal height. */
+.scanner-buttons {
+  gap: 12px;
+}
+
+.scanner-buttons .button,
+.scanner-buttons .photo-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 100px;
+  font-size: 13px;
+}
+
+.scanner-buttons .photo-upload {
+  border: 1px solid rgba(127,85,57,0.28);
+  background: #EDE0D4;
+  color: #4A2F20;
+  cursor: pointer;
+}
+
+/* Manual member code: one boxed column per letter. */
+.manual-code-letters {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.manual-code-letters > span {
+  display: grid;
+  place-items: center;
+  width: clamp(40px, 11vw, 58px);
+  height: clamp(50px, 13vw, 64px);
+  border-radius: 12px;
+  border: 1px solid rgba(127,85,57,0.28);
+  background: #EDE0D4;
+  color: #ffffff;
+  font-size: clamp(20px, 5vw, 28px);
+  font-weight: 600;
+}
+
+/* Leaderboard: tighter gap between the rank, the photo, and the name. */
+.rank-table .leaderboard-member-trigger {
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .rank-table th:nth-child(1),
+  .rank-table td:nth-child(1) {
+    width: 46px;
+    padding-left: 12px;
+    padding-right: 0;
+  }
+  .rank-table .leaderboard-member-trigger {
+    gap: 10px;
+  }
+}
+
+/* Repeating task countdown: small, tabular, and clearly secondary to the claim button. */
+.task-timer {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #6B4A38;
+  font-variant-numeric: tabular-nums;
+}
+
+.task-timer strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+
+/* ---- Neumorphism surfaces ---- */
+h1, h2, h3, h4 {
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--caramel);
+  color: #ffffff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--cocoa);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+a {
+  color: var(--ink);
+  text-decoration-color: rgba(127, 85, 57, 0.5);
+}
+
+/* Cards and raised panels share the base color; light from top-left, shadow to bottom-right. */
+.button.light,
+.button.outline,
+.reward-brand-tile,
+.member-task-card,
+.member-streak-grid > div,
+.own-ranking,
+.rank-table,
+.share-card-preview,
+.staff-kind-options button,
+.motion-toggle,
+.back-top {
+  box-shadow: var(--sh-out);
+}
+
+/* Inputs are pressed into the surface. */
+input,
+select,
+textarea {
+  background: var(--base);
+  color: var(--ink);
+  border: 1px solid transparent;
+  box-shadow: var(--sh-in);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--cocoa);
+  outline-offset: 2px;
+}
+
+/* Primary action: cocoa fill, white text, raised shadow that presses on active. */
+.button.dark {
+  background: var(--cocoa);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 6px 6px 14px rgba(127, 85, 57, 0.32), -4px -4px 12px rgba(255, 255, 255, 0.4);
+}
+
+.button.dark:hover {
+  filter: brightness(1.08);
+}
+
+.button.dark:active,
+.button.light:active,
+.button.outline:active {
+  box-shadow: var(--sh-press);
+  transform: translateY(1px);
+}
+
+.button.light,
+.button.outline {
+  color: var(--ink);
+  background: var(--base);
+}
+
+/* Status: success is green, error is red. */
+.is-success,
+[data-tone="success"] {
+  color: var(--success);
+}
+
+.is-error,
+[data-tone="error"] {
+  color: var(--error);
+}
+
+/* Atmosphere: soft brown light fields behind the neumorphic surfaces. */
+.atmosphere {
+  background: var(--base);
+}
+
+.atmosphere::before {
+  background: radial-gradient(circle, rgba(221, 184, 146, 0.55), rgba(221, 184, 146, 0) 62%);
+}
+
+.atmosphere::after {
+  background: radial-gradient(circle, rgba(176, 137, 104, 0.32), rgba(176, 137, 104, 0) 62%);
+}
+
+/* Reduced transparency no longer changes the look: surfaces are already solid. */
+@media (prefers-reduced-transparency: reduce) {
+  * {
+    backdrop-filter: none !important;
+  }
+}
+
+/* Header and menus: raised base surface with ink text, so navigation reads clearly. */
+.header.elevated-nav {
+  background: var(--base);
+  border-color: transparent;
+  box-shadow: var(--sh-out);
+}
+
+.header .nav a,
+.header .nav button,
+.header a,
+.header button {
+  color: var(--ink);
+}
+
+@media (max-width: 760px) {
+  .header .nav {
+    background: var(--base);
+    background-image: none;
+    border-color: transparent;
+    box-shadow: var(--sh-out);
+  }
+  .header .nav a,
+  .header .nav button {
+    color: var(--ink);
+  }
+}
+
+/* Primary buttons inside the header keep white text on the cocoa fill. */
+.header .button.dark {
+  color: #ffffff;
+}
+
+
+/* ---- Task countdown: readable on the base surface ---- */
+.task-timer strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---- Manual member code: one row of six pressed letter tiles ---- */
+.manual-member-code > .manual-code-letters {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 14px auto 10px;
+  color: var(--ink);
+  max-width: 100%;
+}
+
+.manual-member-code > .manual-code-letters > span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: clamp(36px, 11vw, 50px);
+  height: clamp(46px, 13vw, 58px);
+  border-radius: 12px;
+  border: none;
+  background: var(--base);
+  box-shadow: var(--sh-in);
+  color: var(--cocoa);
+  font-size: clamp(18px, 4.8vw, 24px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* ---- Animated background: slow drifting warm light and rings ---- */
+.bg-drift {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.bg-drift.drift-a {
+  width: 52vw;
+  height: 52vw;
+  left: -14vw;
+  top: 8vh;
+  background: radial-gradient(circle, rgba(221, 184, 146, 0.55) 0%, rgba(221, 184, 146, 0) 68%);
+  animation: bgDriftA 28s ease-in-out infinite alternate;
+}
+
+.bg-drift.drift-b {
+  width: 44vw;
+  height: 44vw;
+  right: -12vw;
+  top: 38vh;
+  background: radial-gradient(circle, rgba(176, 137, 104, 0.4) 0%, rgba(176, 137, 104, 0) 68%);
+  animation: bgDriftB 34s ease-in-out infinite alternate;
+}
+
+.bg-drift.drift-c {
+  width: 36vw;
+  height: 36vw;
+  left: 30vw;
+  bottom: -10vh;
+  background: radial-gradient(circle, rgba(230, 204, 178, 0.7) 0%, rgba(230, 204, 178, 0) 70%);
+  animation: bgDriftC 22s ease-in-out infinite alternate;
+}
+
+.bg-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(127, 85, 57, 0.14);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.bg-ring.ring-a {
+  width: 38vw;
+  height: 38vw;
+  right: 6vw;
+  top: 14vh;
+  animation: bgSpin 60s linear infinite;
+}
+
+.bg-ring.ring-b {
+  width: 24vw;
+  height: 24vw;
+  left: 8vw;
+  bottom: 12vh;
+  border-style: dashed;
+  border-color: rgba(156, 102, 68, 0.18);
+  animation: bgSpinRev 48s linear infinite;
+}
+
+@keyframes bgDriftA { to { transform: translate3d(9vw, 7vh, 0) scale(1.12); } }
+@keyframes bgDriftB { to { transform: translate3d(-8vw, -6vh, 0) scale(0.92); } }
+@keyframes bgDriftC { to { transform: translate3d(-6vw, -5vh, 0) scale(1.08); } }
+@keyframes bgSpin { to { transform: rotate(360deg); } }
+@keyframes bgSpinRev { to { transform: rotate(-360deg); } }
+
+.motion-paused .bg-drift,
+.motion-paused .bg-ring {
+  animation: none;
+}
+
+/* ---- Responsive safety net ---- */
+img,
+video,
+svg {
+  max-width: 100%;
+}
+
+@media (max-width: 760px) {
+  .member-task-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ---- Leaderboard: smaller avatars, compact badge chips, paged list ---- */
+.rank-table {
+  --leaderboard-avatar: 44px;
+}
+
+.rank-table td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  vertical-align: middle;
+}
+
+.rank-table .leaderboard-member-trigger {
+  min-height: 0;
+  padding: 0;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.rank-table .leaderboard-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+  padding-left: calc(var(--leaderboard-avatar) + 12px);
+  line-height: 1;
+}
+
+.rank-table .leaderboard-badges .admin-badge,
+.rank-table .leaderboard-badges .leaderboard-you-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  margin: 0;
+  padding: 0 6px;
+  font-size: 8px;
+  line-height: 1;
+  letter-spacing: 0.4px;
+  border-radius: 5px;
+  vertical-align: top;
+}
+
+.rank-table .leaderboard-badges .leaderboard-you-badge {
+  background: #7F5539;
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.rank-table .leaderboard-badges .admin-badge {
+  box-shadow: 2px 2px 5px rgba(127, 85, 57, 0.18), -2px -2px 5px rgba(255, 255, 255, 0.55);
+}
+
+@media (max-width: 480px) {
+  .rank-table {
+    --leaderboard-avatar: 38px;
+  }
+  .rank-table .leaderboard-member-trigger {
+    gap: 10px;
+    font-size: 13px;
+  }
+}
+
+.leaderboard-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px 22px;
+  text-align: center;
+  font-size: 13px;
+  color: #6B4A38;
+}
+
+/* ---- Leaderboard final layout: no lines, labels under the name, rank/name/points aligned at the top ---- */
+.rank-table,
+.rank-table table,
+.rank-table thead,
+.rank-table tbody,
+.rank-table tr,
+.rank-table th,
+.rank-table td {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.rank-table th,
+.rank-table td {
+  background: transparent !important;
+}
+
+.rank-table table {
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.rank-table thead th {
+  padding: 18px 16px 8px;
+  vertical-align: top;
+  color: #6B4A38;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.rank-table thead th:nth-child(1) { width: 18%; text-align: center; }
+.rank-table thead th:nth-child(2) { text-align: left; }
+.rank-table thead th:nth-child(3) { width: 26%; text-align: right; }
+
+.rank-table tbody td {
+  padding: 10px 16px;
+  vertical-align: top;
+  color: #4A2F20;
+}
+
+.rank-table tbody td:nth-child(1) {
+  text-align: center;
+}
+
+.rank-table tbody td:nth-child(3) {
+  text-align: right;
+  white-space: nowrap;
+  line-height: var(--leaderboard-avatar);
+  font-size: 15px;
+}
+
+.rank-table tbody td:nth-child(3) span {
+  font-size: 11px;
+  color: #6B4A38;
+}
+
+.rank-table tbody tr.is-current-member td {
+  background: rgba(127, 85, 57, 0.08) !important;
+}
+
+/* Rank number sits in the same band as the avatar so the three columns share one centre line. */
+.rank-table .rank-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-top: calc((var(--leaderboard-avatar) - 30px) / 2);
+  vertical-align: top;
+}
+
+.rank-table .leaderboard-member-trigger {
+  display: flex;
+  align-items: center;
+  height: var(--leaderboard-avatar);
+  min-height: 0;
+  padding: 0;
+  gap: 14px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+}
+
+/* Labels sit directly under the name, indented to line up with it. */
+.rank-table .leaderboard-badges {
+  margin-top: 4px;
+  gap: 4px;
+  padding-left: calc(var(--leaderboard-avatar) + 14px);
+}
+
+/* Search: one outline on the wrapper, none on the inner input. */
+.ranking-filter label:focus-within {
+  outline: 2px solid #7F5539;
+  outline-offset: 3px;
+  border-radius: 999px;
+}
+
+.ranking-filter input,
+.ranking-filter input:focus,
+.ranking-filter input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+@media (max-width: 480px) {
+  .rank-table thead th:nth-child(3) { width: 30%; }
+  .rank-table tbody td { padding: 10px 10px; }
+}
+
+@media (max-width: 480px) {
+  .rank-table thead th {
+    white-space: normal;
+    line-height: 1.3;
+    letter-spacing: 0.6px;
+  }
+  .rank-table thead th:nth-child(3) {
+    width: 30%;
+    padding-right: 6px;
+  }
+  .rank-table tbody td:nth-child(3) {
+    padding-right: 6px;
+  }
+}
+
+/* ---- Own ranking: rank chips, live note, and the not-listed state ---- */
+.own-rank-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  margin-left: 8px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #7F5539;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  vertical-align: middle;
+}
+
+.own-rank-live {
+  color: #6B4A38;
+  letter-spacing: 0.4px;
+}
+
+.own-rank-numbers > strong.not-listed {
+  font-size: 18px;
+  line-height: 1.2;
+}

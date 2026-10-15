@@ -1,6 +1,11 @@
 export const CARD_WIDTH=1080, CARD_HEIGHT=1350
-const INK='#0b090a', MIST='#d3d3d3', WHITE='#ffffff'
-const DISPLAY='Manrope, sans-serif', BODY='"DM Sans", sans-serif'
+// Neumorphic brown card: raised base surface, pressed-in photo well, light brown fade only at the photo edge.
+const BASE='#ede0d4', SAND='#e6ccb2', INK='#4a2f20', MUTED='#6b4a38'
+// Georgia is installed on every phone and desktop, so the card renders the same without loading web fonts.
+const DISPLAY='Georgia, "Times New Roman", serif'
+const BODY='system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const CARD={x:36,y:36,w:1008,h:1278,r:56}
+const PANEL={x:84,y:168,w:912,h:880,r:40}
 export function cardFacts(standing,tasks){
  const rank=standing?.ok&&standing.opted_in&&Number.isSafeInteger(standing.rank)&&standing.rank>0?standing.rank:null
  const achievements=[]
@@ -34,52 +39,65 @@ function cover(ctx,image,x,y,w,h){
  const scale=Math.max(w/iw,h/ih),sw=w/scale,sh=h/scale
  ctx.drawImage(image,(iw-sw)/2,(ih-sh)*.42,sw,sh,x,y,w,h)
 }
+// Raised surface: a warm shadow falls bottom-right and a soft light edge sits top-left.
+function raised(ctx,b){
+ ctx.save()
+ ctx.shadowColor='rgba(127,85,57,0.38)';ctx.shadowBlur=44;ctx.shadowOffsetX=20;ctx.shadowOffsetY=22
+ ctx.fillStyle=BASE;rounded(ctx,b.x,b.y,b.w,b.h,b.r);ctx.fill()
+ ctx.shadowColor='rgba(255,255,255,0.85)';ctx.shadowBlur=36;ctx.shadowOffsetX=-16;ctx.shadowOffsetY=-16
+ rounded(ctx,b.x,b.y,b.w,b.h,b.r);ctx.fill()
+ ctx.restore()
+}
+// Pressed-in well: a shadow cast from inside the top-left edge.
+function pressed(ctx,b){
+ ctx.save()
+ rounded(ctx,b.x,b.y,b.w,b.h,b.r);ctx.clip()
+ ctx.beginPath();ctx.rect(b.x-400,b.y-400,b.w+800,b.h+800);ctx.roundRect(b.x,b.y,b.w,b.h,b.r)
+ ctx.shadowColor='rgba(127,85,57,0.45)';ctx.shadowBlur=26;ctx.shadowOffsetX=10;ctx.shadowOffsetY=10
+ ctx.fillStyle='#000';ctx.fill('evenodd')
+ ctx.restore()
+}
 export function drawMemberCard(canvas,{profile,image,rank,snapshotDate}){
  canvas.width=CARD_WIDTH;canvas.height=CARD_HEIGHT
  const ctx=canvas.getContext('2d');if(!ctx)throw Error('Your browser cannot create the card image.')
  const initial=graphemes(profile.display_name)[0]?.toUpperCase()||''
- ctx.save();rounded(ctx,0,0,CARD_WIDTH,CARD_HEIGHT,48);ctx.clip()
- // Base: black field with a red glow top-left and a soft grey glow bottom-right.
- ctx.fillStyle=INK;ctx.fillRect(0,0,CARD_WIDTH,CARD_HEIGHT)
- const glowA=ctx.createRadialGradient(140,140,0,140,140,760);glowA.addColorStop(0,'rgba(164,22,26,0.62)');glowA.addColorStop(1,'rgba(164,22,26,0)');ctx.fillStyle=glowA;ctx.fillRect(0,0,CARD_WIDTH,CARD_HEIGHT)
- const glowB=ctx.createRadialGradient(980,1180,0,980,1180,640);glowB.addColorStop(0,'rgba(211,211,211,0.14)');glowB.addColorStop(1,'rgba(211,211,211,0)');ctx.fillStyle=glowB;ctx.fillRect(0,0,CARD_WIDTH,CARD_HEIGHT)
-
- // Photo panel: the member photo, or an initial on a glass tile.
- ctx.save();rounded(ctx,36,126,1008,1104,36);ctx.clip()
- if(image)cover(ctx,image,36,126,1008,1104)
+ ctx.fillStyle=BASE;ctx.fillRect(0,0,CARD_WIDTH,CARD_HEIGHT)
+ raised(ctx,CARD)
+ // Photo well: the member photo, or an initial on a sand tile.
+ ctx.save();rounded(ctx,PANEL.x,PANEL.y,PANEL.w,PANEL.h,PANEL.r);ctx.clip()
+ if(image)cover(ctx,image,PANEL.x,PANEL.y,PANEL.w,PANEL.h)
  else{
-  ctx.fillStyle='#14110f';ctx.fillRect(36,126,1008,1104)
-  const disc=ctx.createRadialGradient(540,520,40,540,520,330);disc.addColorStop(0,'rgba(164,22,26,0.95)');disc.addColorStop(1,'rgba(164,22,26,0.15)')
-  ctx.fillStyle=disc;ctx.beginPath();ctx.arc(540,520,330,0,Math.PI*2);ctx.fill()
-  ctx.fillStyle='rgba(211,211,211,0.92)';ctx.font=`600 300px ${DISPLAY}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(initial,540,540);ctx.textAlign='left';ctx.textBaseline='alphabetic'
+  ctx.fillStyle=SAND;ctx.fillRect(PANEL.x,PANEL.y,PANEL.w,PANEL.h)
+  const disc=ctx.createRadialGradient(540,598,40,540,598,300);disc.addColorStop(0,'rgba(156,102,68,0.9)');disc.addColorStop(1,'rgba(156,102,68,0.12)')
+  ctx.fillStyle=disc;ctx.beginPath();ctx.arc(540,598,300,0,Math.PI*2);ctx.fill()
+  ctx.fillStyle=BASE;ctx.font=`600 260px ${DISPLAY}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(initial,540,612);ctx.textAlign='left';ctx.textBaseline='alphabetic'
  }
- // Scrim keeps the watermark legible over bright photos.
- const top=ctx.createLinearGradient(0,126,0,500);top.addColorStop(0,'rgba(11,9,10,0.85)');top.addColorStop(1,'rgba(11,9,10,0)');ctx.fillStyle=top;ctx.fillRect(36,126,1008,374)
+ // Light brown fade only along the bottom edge of the photo.
+ const fade=ctx.createLinearGradient(0,PANEL.y+PANEL.h-150,0,PANEL.y+PANEL.h);fade.addColorStop(0,'rgba(127,85,57,0)');fade.addColorStop(1,'rgba(127,85,57,0.28)')
+ ctx.fillStyle=fade;ctx.fillRect(PANEL.x,PANEL.y+PANEL.h-150,PANEL.w,150)
  ctx.restore()
-
- // Black gradient rises from the bottom so the identity reads over any photo.
- const fade=ctx.createLinearGradient(0,540,0,1240);fade.addColorStop(0,'rgba(11,9,10,0)');fade.addColorStop(.42,'rgba(11,9,10,0.84)');fade.addColorStop(1,'rgba(11,9,10,0.97)');ctx.fillStyle=fade;ctx.fillRect(36,540,1008,700)
- // Watermark, upper left.
- ctx.fillStyle=WHITE;ctx.font=`600 42px ${DISPLAY}`;ctx.fillText('Aureatine',66,84)
- ctx.textAlign='right';ctx.font=`500 21px ${BODY}`;ctx.fillStyle=MIST;ctx.fillText('Your next rep. Your new favorite sip.',1014,79);ctx.textAlign='left'
- // Identity: a small name with the username under it, kept low so the photo leads.
- const NAME_X=76
- const name=fitted(ctx,profile.display_name,928,2,56,30)
- ctx.fillStyle=WHITE
- name.lines.forEach((line,i)=>ctx.fillText(line,NAME_X,1060-(name.lines.length-1-i)*name.size*1.12))
- ctx.fillStyle=MIST;ctx.font=`400 26px ${BODY}`;ctx.fillText('@'+profile.username,NAME_X,1112)
- // Rank line, only when the member is opted in to the leaderboard.
+ pressed(ctx,PANEL)
+ // Watermark, upper left, and the tagline, upper right.
+ ctx.fillStyle=INK;ctx.font=`600 42px ${DISPLAY}`;ctx.fillText('Aureatine',84,124)
+ ctx.textAlign='right';ctx.font=`500 19px ${BODY}`;ctx.fillStyle=MUTED;ctx.fillText('Your next rep. Your new favorite sip.',996,118);ctx.textAlign='left'
+ // Identity below the photo: name, username, and the rank on the same line.
+ const name=fitted(ctx,profile.display_name,912,2,60,32)
+ ctx.fillStyle=INK
+ const nameBase=PANEL.y+PANEL.h+80
+ name.lines.forEach((line,i)=>ctx.fillText(line,84,nameBase+i*name.size*1.12))
+ const userY=nameBase+(name.lines.length-1)*name.size*1.12+50
+ ctx.fillStyle=MUTED;ctx.font=`400 26px ${BODY}`;ctx.fillText('@'+profile.username,84,userY)
  if(rank){
-  ctx.fillStyle='rgba(211,211,211,0.14)';ctx.fillRect(NAME_X,1140,928,1.5)
-  ctx.fillStyle=MIST;ctx.font=`500 22px ${BODY}`;ctx.fillText('Leaderboard rank',NAME_X,1190)
-  const labelW=ctx.measureText('Leaderboard rank').width
-  ctx.fillStyle=WHITE;ctx.font=`600 30px ${DISPLAY}`;ctx.fillText('#'+rank.toLocaleString('en-PH'),NAME_X+labelW+18,1190)
+  const value='#'+rank.toLocaleString('en-PH')
+  ctx.font=`600 30px ${DISPLAY}`;ctx.fillStyle=INK;ctx.textAlign='right';ctx.fillText(value,996,userY)
+  const valueW=ctx.measureText(value).width
+  ctx.font=`500 21px ${BODY}`;ctx.fillStyle=MUTED;ctx.fillText('Leaderboard rank',996-valueW-14,userY)
+  ctx.textAlign='left'
  }
-
- // Footer.
- ctx.fillStyle=MIST;ctx.font=`400 19px ${BODY}`;ctx.fillText('Community snapshot · '+snapshotDate+' · PH',66,1297)
- ctx.textAlign='right';ctx.font=`600 21px ${BODY}`;ctx.fillText('aureatine.cc.cd',1014,1297);ctx.textAlign='left'
- ctx.restore()
+ ctx.fillStyle='rgba(127,85,57,0.2)';ctx.fillRect(84,userY+30,912,2)
+ // Footer sits on the base outside the card.
+ ctx.fillStyle=MUTED;ctx.font=`400 18px ${BODY}`;ctx.fillText('Community snapshot · '+snapshotDate+' · PH',84,1338)
+ ctx.textAlign='right';ctx.fillStyle=INK;ctx.font=`600 20px ${BODY}`;ctx.fillText('aureatine.cc.cd',996,1338);ctx.textAlign='left'
  return canvas
 }
 export function canvasPNG(canvas){return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('Could not export the PNG. Try another browser.')),'image/png'))}

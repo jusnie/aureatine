@@ -54,3 +54,32 @@
 - Leaderboard rank column and avatar gap tightened. Local, not pushed.
 - Open: 24-hour task timer and Cardio 30 mins task (needs product decision and SQL change).
 - Tasks: daily check-in and new Cardio 30 minutes task (30 points, once per Philippine date) show a live countdown to the midnight reset. SQL: new task name in the check constraint and claim function; existing checks pass (full-sql, tasks-sql). Local, not pushed. Run supabase/aureatine-full-setup.sql before using the Cardio task.
+
+## Brown neumorphism restyle (local, not yet pushed)
+- Replaced the glass palette with the brown palette (#EDE0D4, #E6CCB2, #DDB892, #B08968, #9C6644, #7F5539) across src/.
+- Neumorphic raised and inset shadows on cards, panels, buttons, and inputs. Glass blur removed.
+- Status: success green (#2F7D4F), error red (#B3261E).
+- src/glass.css renamed to src/theme.css and imported last in src/main.jsx.
+- QR colors (#241d17 on #ffffff) kept. Share card black bottom gradient kept; red glow changed to caramel.
+- index.html theme-color set to #EDE0D4. DESIGN.md and PRODUCT.md updated.
+- Checks: npm run build and build:pages pass. aislop scan src: 92 healthy, 0 errors, 5 pre-existing warnings. Desktop and 390px screenshots of home, about, rewards, leaderboard, and login: no page errors, no horizontal overflow.
+- Open: /leaderboard at 390px bottom overlap with motion toggle and AI launcher (layout fix pending).
+
+## 24-hour tasks, manual code, background, motion toggle (local, not yet pushed)
+- SQL (single file supabase/aureatine-full-setup.sql): daily and cardio now claim on a rolling 24-hour window from each claim, with unique period keys. get_member_tasks returns daily_available_at, cardio_available_at, and next_reset. Re-run the full SQL file in Supabase before the Cardio and daily changes take effect.
+- Local SQL test (PGlite, stubbed auth): signup once, daily once per 24 hours, cardio 30 once per 24 hours, claim after 25 hours succeeds, points 55 as expected.
+- Tasks UI: signup card disappears after claim. Daily and cardio show Available again in HH:MM:SS after claim.
+- Manual member code: one row of six pressed tiles, ink-cocoa letters (no white glow).
+- Softer neumorphic highlights (less white glow). Task countdown text is ink, not white.
+- Motion on/off toggle removed. Animated background: three drifting warm glows and two slow rings; paused for reduced-motion users.
+- Responsive: no horizontal overflow at 320, 390, 768, 1024, 1280 on public pages. Member pages checked through a static harness.
+- Open: five-day gym task "limited time" meaning, and whether tasks rotate after 24 hours.
+- Five-day gym task now repeats: each cycle needs five visit dates since the last claim, then one claim per 24 hours. Visible countdown after claim. Local SQL test passed (4 visits rejected, 5 visits awarded 25 points, later cycle counts only new visits).
+- Open: rotating task list after 24 hours needs the user task list and point values before implementation.
+- Member card (share card, src/memberCardCanvas.js): same layout, brown palette. Espresso field, caramel glow, sand and base text, latte glow. Bottom gradient kept dark (espresso, not pure black) for legibility. Verified by render test; test files removed.
+- Member card (share card): neumorphic raised base with pressed-in photo well, light brown fade only at the photo bottom, Georgia name and watermark, system sans body. Test renders checked; test files removed.
+- Leaderboard paging and compact labels (local, not yet pushed). SQL: get_leaderboard_entries(p_limit=20, p_offset, p_search) returns 20 per page, capped at 50, with global ranks and total_count; server-side name search; index on wallets(points desc). Re-run the full SQL file before deploying the page, since the function signature changed.
+- Frontend: Show more members button, server search with a 300 ms debounce, header count shows the real total. Badges shrunk to 18px chips, avatars 44px desktop and 38px phone.
+- Checks: local SQL test (45 members: page 1 = 20 rows, page 3 = 5 rows, search returns the single match, %-search escapes, limit clamps to 50). Browser mock at 390 and 1440: 20 then 40 rows after Show more, search 7 matches, no overflow, no page errors.
+- Leaderboard layout final pass (local, not pushed): table lines and column bands removed, the left accent on your row removed (tint only), rank/name/points share one centre line at the top, labels sit directly under the name, search has one outline. Measured at 320, 390, 1440: no clipping, no page overflow.
+- Leaderboard status and live updates (local, not pushed): own ranking shows "Not in the leaderboards" when not opted in; when listed it shows #rank with Top 3, Top 10, or Top 50 chips. Both the own ranking and the leaderboard list refresh every 20 seconds, and again when the tab is shown or the window is focused. Browser mock test: not-listed state shown, then rank 2 appeared automatically after 18 s without reload. No extra SQL needed beyond the earlier leaderboard SQL change.
