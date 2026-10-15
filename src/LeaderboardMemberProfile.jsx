@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import LeaderboardAvatar from './LeaderboardAvatar'
+import { RankFrame, RankLine } from './RankFrame'
+import { rankByTitle } from './ranks'
 import { SocialLinks } from './MemberCommunity'
 import './leaderboardProfile.css'
 import {LabelBadges, labelsOf} from './memberLabels'
@@ -43,10 +45,10 @@ function ProfileDetails({ memberId, Link }) {
   const photo = p.leaderboard_avatar_path === `${memberId}/avatar.webp` ? p.leaderboard_avatar_path : null
   const ranked = Number.isSafeInteger(p.rank) && p.rank > 0
   return <div className="leaderboard-profile-details">
-    <header className="leaderboard-profile-identity"><LeaderboardAvatar key={photo || 'initial'} name={p.display_name} path={photo}/><div><h3>{p.display_name}</h3><p>@{p.username}</p><LabelBadges isAdmin={p.is_admin} labels={labelsOf(p)}/>{p.is_me === true && <span className="leaderboard-you-badge">You</span>}</div></header>
+    <header className="leaderboard-profile-identity"><RankFrame rank={rankByTitle(p.rank_title, p.exp)} size={96}><LeaderboardAvatar key={photo || 'initial'} name={p.display_name} path={photo}/></RankFrame><div><h3>{p.display_name}</h3><p>@{p.username}</p><RankLine rank={rankByTitle(p.rank_title, p.exp)} exp={p.exp}/><LabelBadges isAdmin={p.is_admin} labels={labelsOf(p)}/>{p.is_me === true && <span className="leaderboard-you-badge">You</span>}</div></header>
     {p.bio ? <p className="leaderboard-profile-bio">{p.bio}</p> : <p className="leaderboard-profile-muted">No bio added yet.</p>}
     <SocialLinks profile={p}/>
-    <div className="leaderboard-profile-standing">{ranked ? <><div><span>Leaderboard rank</span><strong>#{p.rank.toLocaleString()}</strong></div><div><span>Verified points</span><strong>{count(p.points)}</strong></div></> : <p>This member is not currently listed on the leaderboard.</p>}</div>
+    <div className="leaderboard-profile-standing">{ranked ? <><div><span>Leaderboard rank</span><strong>#{p.rank.toLocaleString()}</strong></div><div><span>Verified Aurels</span><strong>{count(p.points)}</strong></div></> : <p>This member is not currently listed on the leaderboard.</p>}</div>
     <dl className="leaderboard-profile-counts">{['friends', 'followers', 'following'].map(label => <div key={label}><dt>{label}</dt><dd>{count(p[label])}</dd></div>)}</dl>
     {p.is_me === true && <Link to="/profile" className="button outline">Open my account</Link>}
     <p className="leaderboard-profile-privacy">Only shared member details appear here. Photos require leaderboard and photo-sharing consent.</p>

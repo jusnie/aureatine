@@ -30,7 +30,7 @@ export default function RedeemableCatalog({ children, session, balance, onBalanc
   const [sort, setSort] = useState('points-asc')
   const items = selectRewards(rewardItems, brand, sort, category)
   return <section className="redeemable-catalog" aria-labelledby="catalog-title">
-    <header className="catalog-heading"><div><span className="club-kicker">FIND YOUR NEXT FAVORITE</span><h2 id="catalog-title">Explore by brand.</h2></div><p>A few names to look forward to.<br/>Items and points costs are coming soon.</p></header>
+    <header className="catalog-heading"><div><span className="club-kicker">FIND YOUR NEXT FAVORITE</span><h2 id="catalog-title">Explore by brand.</h2></div><p>A few names to look forward to.<br/>Items and Aurels costs are coming soon.</p></header>
     <div className="reward-brand-options" role="group" aria-label="Filter rewards by brand">
       <button className="reward-brand-all" aria-pressed={brand === 'all'} onClick={() => setBrand('all')}><span aria-hidden="true">✳</span><strong>All brands</strong><small>The full collection</small></button>
       {rewardBrands.map((name, i) => <button key={name} className={`reward-brand-tile brand-style-${i}`} aria-label={`Filter by ${name}`} aria-pressed={brand === name} onClick={() => setBrand(name)}><span className="reward-brand-logo"><img src={`${basePath}images/brands/${name.toLowerCase()}-fit-v3.png`} alt={`${name} logo`} width="600" height="240" style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', objectPosition: 'center', transform: 'none' }}/></span><small>{brand === name ? 'Selected' : 'Browse brand'}<span aria-hidden="true">↗</span></small></button>)}

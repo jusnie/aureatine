@@ -83,3 +83,42 @@
 - Checks: local SQL test (45 members: page 1 = 20 rows, page 3 = 5 rows, search returns the single match, %-search escapes, limit clamps to 50). Browser mock at 390 and 1440: 20 then 40 rows after Show more, search 7 matches, no overflow, no page errors.
 - Leaderboard layout final pass (local, not pushed): table lines and column bands removed, the left accent on your row removed (tint only), rank/name/points share one centre line at the top, labels sit directly under the name, search has one outline. Measured at 320, 390, 1440: no clipping, no page overflow.
 - Leaderboard status and live updates (local, not pushed): own ranking shows "Not in the leaderboards" when not opted in; when listed it shows #rank with Top 3, Top 10, or Top 50 chips. Both the own ranking and the leaderboard list refresh every 20 seconds, and again when the tab is shown or the window is focused. Browser mock test: not-listed state shown, then rank 2 appeared automatically after 18 s without reload. No extra SQL needed beyond the earlier leaderboard SQL change.
+
+## Aurels rename (local, not pushed)
+- Visible "points" copy renamed to "Aurels" across the UI (45 lines in 10 `src/` files plus the chat coach prompt in `api/chat.js`). Database columns, keys, and code names (`points`, `member_point_events`, `wallets.points`) are unchanged.
+- The Aurel coin (`public/images/aurel-coin.png`, from the user's supplied PNG) replaces the star icon on the balance card (`.aurel-coin` in `theme.css`).
+- Removed the "temporary SVG" note from the "How can I add Aurels?" explainer.
+- Checks: `npm run build` exit 0; `aislop scan src` 92 healthy, 0 errors, 5 warnings; `/rewards` at 390px: coin loads (608×411), no horizontal overflow, no page errors.
+
+## EXP ranks (local, not pushed)
+- Lifetime EXP: 1 EXP per Aurel earned. Redeeming lowers Aurels but never EXP. Implemented as `wallets.exp_total` with a trigger on balance increases (`wallets_track_exp`), so every award path counts. Backfilled from past positive events and task claims.
+- Ranks: Mortal 0, Demigod 500, Divine 1500, Olympian 4000, Ascendant 10000. `member_rank_title()` in SQL and `src/ranks.js` must stay in sync.
+- SQL: new `member-exp` module at the end of `supabase/aureatine-full-setup.sql`. Updates `get_leaderboard_entries` (adds `rank_title`, `exp`), `get_my_leaderboard_standing` (adds `exp`, `rank_title`), and `member_community_card` (adds `rank_title`; `exp` only on the member's own card). Run the full file once in Supabase.
+- Checks: `/home/user/tools/sql-check/exp-check.mjs` passes (EXP at each boundary, redemption keeps EXP). `lb-check.mjs` and `task24h-check.mjs` still pass with the full file.
+- Assets: `public/images/ranks/{rank}-badge.webp` and `{rank}-border.webp`, backgrounds removed from the supplied art.
+- UI: leaderboard rows show a corner badge on the avatar and a rank chip under the name. The member dialog and own profile show the full border ring around the photo and a rank line with EXP (own profile only).
+- Fixed a stale dev-server issue (not a code bug). The production build was already correct.
+- Checks: `npm run build` exit 0; aislop 92 healthy, 0 errors, 5 warnings (existing). Leaderboard rows at 390px: no overflow, no page errors. Not yet browser-checked: the logged-in own profile and the member dialog with a real session.
+
+## Installable app (PWA, local, not pushed)
+- Chosen route: installable web app, no APK. Members use Chrome's "Install app" or "Add to Home screen".
+- Added: `public/manifest.webmanifest` (standalone, theme #EDE0D4), icons in `public/icons/` (192, 512, maskable 512; the Aurel coin on brown, replaceable), `public/sw.js`, and `src/registerWorker.js` (production only, base-aware path).
+- Service worker: caches only the app shell, hashed assets, and images. Navigation is network-first with a cached fallback. Cross-origin calls (Supabase, Vercel `/api/*`) always go to the network and are never cached.
+- `index.html`: manifest, icon, apple-touch-icon, and mobile web app meta tags. Links are absolute, so the GitHub Pages sub-folder routes resolve.
+- Checks: `npm run build` and `build:pages` exit 0. Served build: manifest loads, icons 200, service worker active and controlling the page, no page errors, no horizontal overflow at 390px. Offline reload renders the app shell. aislop 93 healthy, 0 errors, 5 warnings (existing).
+- Not done: an APK or store listing. The sandbox has no Android SDK. A later APK can wrap the live URL with PWABuilder or Bubblewrap, since the manifest and service worker now exist.
+
+## Logo, app icon, and device-aware shell (local, not pushed)
+- Logo: the supplied badge is cropped and saved as `public/images/aureatine-logo.webp` with a transparent background. It replaces the "Aureatine" text wordmark in the header. The footer wordmark is unchanged.
+- App icons (`public/icons/`) now use the badge on the cream brand colour.
+- Device detection: `src/deviceKind.js` (`useDeviceKind`). A phone or tablet is detected from the user agent or touch input, or a coarse pointer at widths up to 900px. Result is set on `<html data-device>`.
+- Mobile shell: `src/MobileTabBar.jsx` adds a fixed bottom bar (Home, Shakes, Rewards, Board, Account or Log in). On mobile the header's Leaderboard and Rewards links are hidden, since the bar covers them. Layout offsets are in `src/device.css`. Laptops and desktops keep the existing header.
+- Checks: build passes. Phone (mobile UA, touch, 390px) gets `data-device="mobile"` and a visible tab bar with no overflow. Laptop (1440px) gets `desktop` with no tab bar. No page errors. Aislop unchanged at 5 existing warnings.
+- Not done: separate page-by-page mobile layouts. Pages share the responsive layout, with the mobile shell and tab bar as the main difference.
+
+## Menu page (local, not pushed)
+- Header "Our shakes" link is now "Menu" and points to `/menu`. The mobile tab bar's "Shakes" tab is now "Menu" too.
+- New `/menu` page (`src/MenuPage.jsx`, `src/menu.css`) shows only the menu. Items come from `src/menuData.js`, which is empty for now, so the page shows a "Coming soon" card. No flavors or prices are invented.
+- To populate: add entries to `MENU_SECTIONS[0].items` with `name`, `description`, `price` (number, pesos), and `allergens`.
+- `scripts/prepare-pages.mjs` includes `menu`, so GitHub Pages can load `/menu` directly.
+- Checks: build, `build:pages`, and aislop pass (5 existing warnings). `/menu` on laptop and phone: heading "Menu", no page errors, no horizontal overflow, the phone tab bar shows Menu as current, and no "Our shakes" link remains.

@@ -1,0 +1,34 @@
+.menu-page { padding-block: 48px 90px; color: #4a2f20; }
+.menu-header { margin-bottom: 34px; }
+.menu-header h1 { font-size: clamp(44px, 7vw, 76px); letter-spacing: -0.04em; line-height: 1; margin: 12px 0 0; }
+.menu-section {
+  padding: 30px;
+  margin-bottom: 26px;
+  border-radius: 28px;
+  background: #ede0d4;
+  box-shadow: 12px 12px 24px rgba(127, 85, 57, 0.2), -10px -10px 22px rgba(255, 255, 255, 0.75);
+}
+.menu-section-heading h2 { font-size: 30px; margin: 0; }
+.menu-section-heading p { margin: 8px 0 0; color: #6b4a38; }
+.menu-list { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 14px; }
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: #e6ccb2;
+  box-shadow: inset 4px 4px 9px rgba(127, 85, 57, 0.18), inset -4px -4px 9px rgba(255, 255, 255, 0.6);
+}
+.menu-item h3 { font-size: 19px; margin: 0; }
+.menu-item p { margin: 6px 0 0; color: #6b4a38; font-size: 15px; }
+.menu-price { font-weight: 700; font-size: 18px; white-space: nowrap; }
+.menu-allergens { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.menu-allergens li { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: #ede0d4; color: #6b4a38; }
+.menu-empty { margin-top: 20px; display: grid; gap: 12px; justify-items: start; }
+.menu-empty p { margin: 0; color: #6b4a38; max-width: 52ch; }
+@media (max-width: 480px) {
+  .menu-section { padding: 22px; }
+  .menu-item { flex-direction: column; }
+}

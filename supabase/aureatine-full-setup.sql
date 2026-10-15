@@ -933,6 +933,93 @@ end;$$;
 revoke all on function public.admin_set_member_labels(uuid,text[]) from public,anon;
 grant execute on function public.admin_set_member_labels(uuid,text[]) to authenticated;
 
+-- BEGIN MODULE: member-exp
+-- Lifetime EXP: every Aurel ever earned. Redeeming Aurels lowers points but never EXP.
+alter table public.wallets add column if not exists exp_total integer not null default 0;
+alter table public.wallets drop constraint if exists wallets_exp_total_valid;
+alter table public.wallets add constraint wallets_exp_total_valid check (exp_total >= 0);
+-- Backfill from history (raises only, so re-running is safe).
+update public.wallets w set exp_total=greatest(w.exp_total,
+  (coalesce((select sum(e.points) from public.member_point_events e where e.user_id=w.user_id and e.points>0),0)
+  +coalesce((select sum(c.points) from public.member_task_claims c where c.user_id=w.user_id),0))::integer);
+-- Rank titles: Mortal 0, Demigod 500, Divine 1500, Olympian 4000, Ascendant 10000.
+create or replace function public.member_rank_title(p_exp integer) returns text language sql immutable set search_path='' as $$
+ select case when coalesce(p_exp,0)>=10000 then 'Ascendant' when coalesce(p_exp,0)>=4000 then 'Olympian'
+  when coalesce(p_exp,0)>=1500 then 'Divine' when coalesce(p_exp,0)>=500 then 'Demigod' else 'Mortal' end $$;
+-- Every balance increase also adds to EXP. Every award path updates wallets.points, so this covers them all.
+create or replace function public.wallets_track_exp() returns trigger language plpgsql set search_path='' as $$
+begin
+ if new.points>old.points then new.exp_total:=old.exp_total+(new.points-old.points); end if;
+ return new;
+end $$;
+drop trigger if exists wallets_track_exp on public.wallets;
+create trigger wallets_track_exp before update of points on public.wallets for each row execute function public.wallets_track_exp();
+
+drop function if exists public.get_leaderboard_entries(integer,integer,text);
+create function public.get_leaderboard_entries(p_limit integer default 20,p_offset integer default 0,p_search text default '')
+returns table(rank bigint,display_name text,points integer,is_current_user boolean,leaderboard_avatar_path text,is_admin boolean,community_id uuid,labels text[],total_count bigint,rank_title text,exp integer)
+language sql stable security definer set search_path='' as $$
+ with ranked as (
+  select rank() over(order by w.points desc) as rnk,p.display_name,w.points,w.exp_total,p.user_id,p.share_leaderboard_photo,p.avatar_path,p.community_id
+  from public.member_profiles p join public.wallets w on w.user_id=p.user_id
+  join public.leaderboard_profiles l on l.user_id=p.user_id
+  where l.opted_in=true
+ ), filtered as (
+  select *,count(*) over() as total from ranked
+  where coalesce(p_search,'')='' or display_name ilike '%'||replace(replace(replace(p_search,chr(92),chr(92)||chr(92)),'%',chr(92)||'%'),'_',chr(92)||'_')||'%'
+ )
+ select f.rnk,f.display_name,f.points,coalesce(f.user_id=auth.uid(),false),
+ case when f.share_leaderboard_photo and f.avatar_path is not null then f.community_id::text||'/avatar.webp' else null end,
+ exists(select 1 from public.app_admins a where a.user_id=f.user_id),f.community_id,
+ coalesce((select array_agg(o.label order by o.label) from public.owner_labels o where o.user_id=f.user_id),'{}'::text[]),
+ f.total,public.member_rank_title(f.exp_total),f.exp_total
+ from filtered f
+ order by f.points desc,f.display_name,f.user_id
+ limit least(greatest(coalesce(p_limit,20),1),50) offset greatest(coalesce(p_offset,0),0);
+$$;
+revoke all on function public.get_leaderboard_entries(integer,integer,text) from public;
+grant execute on function public.get_leaderboard_entries(integer,integer,text) to anon,authenticated;
+
+create or replace function public.get_my_leaderboard_standing()
+returns jsonb language plpgsql stable security definer set search_path='' as $$
+declare uid uuid:=auth.uid(); member_name text; member_points integer; member_exp integer; opted boolean; position bigint; list_position bigint; total bigint;
+begin
+ if uid is null then return jsonb_build_object('ok',false,'code','SIGN_IN'); end if;
+ select p.display_name,w.points,w.exp_total,coalesce(l.opted_in,false) into member_name,member_points,member_exp,opted
+ from public.member_profiles p join public.wallets w on w.user_id=p.user_id
+ left join public.leaderboard_profiles l on l.user_id=p.user_id where p.user_id=uid;
+ if not found then return jsonb_build_object('ok',false,'code','PROFILE_NOT_READY'); end if;
+ select r,n into position,list_position from (
+ select p.user_id,rank() over(order by w.points desc) r,
+ row_number() over(order by w.points desc,p.display_name,p.user_id) n
+ from public.member_profiles p join public.wallets w on w.user_id=p.user_id
+ join public.leaderboard_profiles l on l.user_id=p.user_id where l.opted_in=true
+ ) standings where user_id=uid;
+ select count(*) into total from public.member_profiles p join public.wallets w on w.user_id=p.user_id
+ join public.leaderboard_profiles l on l.user_id=p.user_id where l.opted_in=true;
+ return jsonb_build_object('ok',true,'display_name',member_name,'points',member_points,'exp',member_exp,
+ 'rank_title',public.member_rank_title(member_exp),'opted_in',opted,
+ 'rank',position,'in_top_50',coalesce(list_position<=50,false),'total_members',total);
+end;$$;
+revoke all on function public.get_my_leaderboard_standing() from public,anon;
+grant execute on function public.get_my_leaderboard_standing() to authenticated;
+
+-- Community card: rank title for everyone, exact EXP only for the member's own card.
+create or replace function public.member_community_card(p_user uuid) returns jsonb language sql stable security definer set search_path='' as $$
+ select jsonb_build_object('id',p.community_id,'display_name',p.display_name,'username',p.username,'bio',p.bio,
+ 'facebook_url',p.facebook_url,'instagram_url',p.instagram_url,'tiktok_url',p.tiktok_url,'is_me',p.user_id=auth.uid(),
+ 'rank_title',public.member_rank_title(w.exp_total),
+ 'exp',case when p.user_id=auth.uid() then w.exp_total end,
+ 'friends',(select count(*) from public.member_friendships f where f.status='accepted' and p.user_id in(f.low_id,f.high_id)),
+ 'followers',(select count(*) from public.member_follows f where f.followed=p.user_id),
+ 'following',(select count(*) from public.member_follows f where f.follower=p.user_id),
+ 'is_following',exists(select 1 from public.member_follows f where f.follower=auth.uid() and f.followed=p.user_id),
+ 'blocked',exists(select 1 from public.member_blocks b where b.blocker=auth.uid() and b.blocked=p.user_id),
+ 'relationship',coalesce((select case when f.status='accepted' then 'friends' when f.status='pending' then case when f.requested_by=auth.uid() then 'outgoing' else 'incoming' end else 'none' end from public.member_friendships f where f.low_id=least(p.user_id,auth.uid()) and f.high_id=greatest(p.user_id,auth.uid())),'none'))
+ from public.member_profiles p left join public.wallets w on w.user_id=p.user_id where p.user_id=p_user;
+$$;
+-- END MODULE: member-exp
+
 -- Refresh REST function/table discovery after schema changes.
 NOTIFY pgrst, 'reload schema';
 COMMIT;

@@ -1,6 +1,6 @@
 export const rewardBrands = ['Youngla', 'Gymshark', 'Breathevinity', 'Dfyne']
 export const rewardCategories = [{ value: 'all', label: 'All items' }, { value: 'apparel', label: 'Apparel' }, { value: 'accessories', label: 'Accessories' }]
-// Add owner-confirmed items only. No stock, points or product claims are assumed.
+// Add owner-confirmed items only. No stock, Aurels or product claims are assumed.
 // { id, brand, category: 'apparel'|'accessories', name, image, imageAlt, description, points: number|null, sizes: [], available: false }
 export const rewardItems = []
 export function selectRewards(items, brand = 'all', sort = 'points-asc', category = 'all') {

@@ -1,0 +1,39 @@
+.mobile-tabbar { display: none; }
+[data-device="mobile"] .mobile-tabbar {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 90;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 8px;
+  border-radius: 24px;
+  background: #ede0d4;
+  box-shadow: 8px 8px 16px rgba(127, 85, 57, 0.22), -8px -8px 16px rgba(255, 255, 255, 0.7);
+}
+[data-device="mobile"] .mobile-tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 2px;
+  border-radius: 16px;
+  color: #6b4a38;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  min-width: 0;
+}
+[data-device="mobile"] .mobile-tabbar a[aria-current="page"] {
+  color: #4a2f20;
+  box-shadow: inset 3px 3px 6px rgba(127, 85, 57, 0.25), inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+}
+[data-device="mobile"] .mobile-tabbar a span { white-space: nowrap; }
+[data-device="mobile"] .nav-actions .icon-link { display: none; }
+[data-device="mobile"] main { padding-bottom: 112px; }
+[data-device="mobile"] .footer { padding-bottom: 130px; }
+[data-device="mobile"] .aureatine-chat { right: 14px; bottom: 96px; }
+[data-device="mobile"] .brand-logo img { height: 46px; }
+.brand-logo img { display: block; height: 58px; width: auto; }
