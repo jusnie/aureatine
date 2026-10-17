@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { basePath } from './urls'
-import ProductSheet from './ProductSheet'
+import { openRewardProduct } from './ProductPage'
 import CouponArea from './CouponArea'
 import { normalizeRedemptionCounts, redemptionCountLabel } from './redemptionCounts'
 import { productCostText, rewardBrands, rewardCategories, rewardItems, rewardProducts, selectRewards } from './redeemables'
@@ -9,19 +9,14 @@ import './shop.css'
 
 const PLACEHOLDER_COUNT = 4
 
-// "You may also like": other products, same category first, up to four.
-function similarProducts(product) {
-  const others = rewardProducts.filter(p => p.key !== product.key)
-  return [...others.filter(p => p.category === product.category), ...others.filter(p => p.category !== product.category)].slice(0, 4)
-}
 const brandLogo = name => `${basePath}images/brands/${name.toLowerCase()}-fit-v3.png`
 // Owner-supplied item photos are relative to the site base path. Absolute URLs are used as-is.
 const assetSrc = path => (/^https?:/.test(path) ? path : `${basePath}${path}`)
 const coinSrc = `${basePath}images/aurel-coin.png`
 
-function ProductCard({ product, countLabelFor, onOpen }) {
+function ProductCard({ product, countLabelFor, onOpen, index = 0 }) {
   const single = product.variants.length === 1 ? product.variants[0] : null
-  return <article className="shop-card">
+  return <article className="shop-card" style={{ '--i': index }}>
     <button type="button" className="shop-card-media" onClick={() => onOpen(product)} aria-label={`View ${product.name}`}>
       {product.image ? <img src={assetSrc(product.image)} alt="" loading="lazy"/> : product.brand && <span className="shop-card-logo"><img src={brandLogo(product.brand)} alt=""/></span>}
       <span className="shop-brand-tag">{product.brand || 'Aureatine'}</span>
@@ -53,7 +48,6 @@ export default function RedeemableCatalog({ children, session, balance, onBalanc
   const [brand, setBrand] = useState('all')
   const [category, setCategory] = useState('all')
   const [sort, setSort] = useState('points-asc')
-  const [openProduct, setOpenProduct] = useState(null)
   // Filters start open on laptops and collapsed on phones so products appear first.
   const [filtersOpen, setFiltersOpen] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches)
   useEffect(() => {
@@ -110,10 +104,9 @@ export default function RedeemableCatalog({ children, session, balance, onBalanc
         </div>
         {rewardItems.length > 0 && <div className="redemption-count-info"><p>Counts show unique members with completed redemptions, not item quantities. Member identities stay private.</p><button type="button" disabled={!supabase || countLoading} onClick={() => setCountRefresh(n => n + 1)}>Refresh counts</button></div>}
         {items.length
-          ? <div className="shop-grid">{items.map(product => <ProductCard key={product.key} product={product} countLabelFor={countLabelFor} onOpen={setOpenProduct}/>)}</div>
+          ? <div className="shop-grid">{items.map((product, index) => <ProductCard key={product.key} product={product} countLabelFor={countLabelFor} onOpen={openRewardProduct} index={index}/>)}</div>
           : <>{rewardItems.length === 0 && <PlaceholderCards/>}{filtersActive && <p className="catalog-brand-empty">No {brand !== 'all' ? `${brand} ` : ''}{category === 'all' ? 'items' : category} have been added yet. Try another filter or check back when the collection is ready.</p>}{children}</>}
       </div>
     </div>
-    <ProductSheet product={openProduct} session={session} balance={balance} countLabelFor={countLabelFor} similar={openProduct ? similarProducts(openProduct) : []} onOpenProduct={setOpenProduct} onRedeemed={newBalance => { onBalanceChange?.(newBalance); setCountRefresh(n => n + 1) }} onClose={() => setOpenProduct(null)}/>
   </section>
 }

@@ -4,7 +4,7 @@ export default function MobileTabBar({ page, session, Link, Icon }) {
   const tabs = [
     { to: '/', label: 'Home', icon: 'star', current: page === '/' },
     { to: '/menu', label: 'Menu', icon: 'cup', current: page === '/menu' },
-    { to: '/rewards', label: 'Rewards', icon: 'gift', current: page === '/rewards' },
+    { to: '/rewards', label: 'Rewards', icon: 'gift', current: page === '/rewards' || page.startsWith('/rewards/') },
     { to: '/leaderboard', label: 'Board', icon: 'trophy', current: page === '/leaderboard' },
     { to: session ? '/profile' : '/login', label: session ? 'Account' : 'Log in', icon: 'user', current: ACCOUNT_ROUTES.includes(page) },
   ]

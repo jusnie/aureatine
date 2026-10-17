@@ -37,3 +37,7 @@
 [data-device="mobile"] .aureatine-chat { right: 14px; bottom: 96px; }
 [data-device="mobile"] .brand-logo img { height: 46px; }
 .brand-logo img { display: block; height: 58px; width: auto; }
+
+/* Inbox icon stays visible in the phone header when logged in. */
+[data-device="mobile"] .nav-actions .icon-link.inbox-nav { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; }
+[data-device="mobile"] .nav-actions .icon-link.inbox-nav span { display: none; }

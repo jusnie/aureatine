@@ -317,3 +317,31 @@
 .shop-similar-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
 .shop-similar-card span { font-size: 14px; font-weight: 600; }
 .shop-similar-card small { font-size: 12px; color: #6b4a38; }
+
+/* Product page (one item per page) */
+.shop-page { padding-block: 28px 80px; animation: shop-rise .55s cubic-bezier(.2,.7,.2,1) backwards; }
+.shop-page-crumb { margin-bottom: 18px; }
+.shop-page-missing { color: #4a2f20; margin: 40px 0 16px; }
+.shop-sheet.shop-sheet-page { width: 100%; max-width: 1000px; max-height: none; margin: 0 auto; overflow: visible; }
+
+/* Motion: cards and panels rise in on load; cards lift on hover; respects reduced motion */
+@keyframes shop-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes shop-fade { from { opacity: 0; } to { opacity: 1; } }
+.shop-card { animation: shop-rise .55s cubic-bezier(.2,.7,.2,1) backwards; animation-delay: calc(var(--i, 0) * 45ms); }
+.shop-card-media img { transition: transform .5s ease; }
+.shop-card:hover .shop-card-media img { transform: scale(1.04); }
+.shop-toolbar, .shop-filters, .shop-balance, .shop-topbar { animation: shop-fade .6s ease backwards; }
+.shop-sheet-media img { transition: transform .4s ease; }
+.shop-similar-card { transition: transform .2s ease, box-shadow .2s ease; }
+.shop-similar-card:hover { transform: translateY(-3px); }
+@media (prefers-reduced-motion: reduce) {
+  .shop-page, .shop-card, .shop-toolbar, .shop-filters, .shop-balance, .shop-topbar { animation: none; }
+  .shop-card-media img, .shop-card:hover .shop-card-media img, .shop-sheet-media img, .shop-similar-card:hover { transition: none; transform: none; }
+}
+
+/* Back button, top left of each product page */
+.shop-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px 0 12px; margin-bottom: 14px; border-radius: 999px; background: #ede0d4; color: #4a2f20; font: 600 14px/1 'DM Sans', sans-serif; text-decoration: none; box-shadow: var(--shop-raised); transition: transform .2s ease; }
+.shop-back svg { transform: rotate(180deg); }
+.shop-back:hover { transform: translateX(-2px); }
+.shop-back:focus-visible { outline: 2px solid #4a2f20; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .shop-back:hover { transform: none; } }
