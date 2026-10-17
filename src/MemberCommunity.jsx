@@ -17,7 +17,7 @@ export default function MemberCommunity({refresh,onChange,onClose}) {
  const [query,setQuery]=useState(''),[filter,setFilter]=useState('all'),[offset,setOffset]=useState(0),[version,setVersion]=useState(0),[data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false)
  const locked=useRef(false)
  useEffect(()=>{let active=true;setLoading(true);setError('');const timer=setTimeout(()=>{
- supabase.rpc('search_community',{p_query:query.trim(),p_filter:filter,p_offset:offset}).then(({data,error})=>{if(!active)return;if(error||!Array.isArray(data?.items)){setData(null);setError('Member search is unavailable. Please install the latest full database setup or try again.')}else setData(data)}).catch(()=>{if(active)setError('Could not load members. Try again.')}).finally(()=>{if(active)setLoading(false)})
+ supabase.rpc('search_community',{p_query:query.trim(),p_filter:filter,p_offset:offset}).then(({data,error})=>{if(!active)return;if(error||!Array.isArray(data?.items)){setData(null);setError('Member search is unavailable right now. Please try again.')}else setData(data)}).catch(()=>{if(active)setError('Could not load members. Try again.')}).finally(()=>{if(active)setLoading(false)})
  },250);return()=>{active=false;clearTimeout(timer)}},[query,filter,offset,refresh,version])
  const searchInput=useRef(null)
  useEffect(()=>{searchInput.current?.focus()},[])

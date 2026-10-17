@@ -172,3 +172,17 @@ output.form-message{display:block}
 .section-label,.club-kicker,.little-pill,.announcement,.round-seal,.status-chip,.subtle-status,.wallet-status,.chat-ai-badge,.hero-partnership,.partner-facebook{font-size:11px}
 .rank-table th{font-size:11px}
 @media(max-width:480px){.member-page,.shell.member-page{padding-bottom:110px}}
+
+/* Breathing room: more space between sections, rows and cards */
+.section { padding-block: clamp(78px, 10vw, 132px); }
+.section-heading { margin-bottom: clamp(40px, 5vw, 60px); }
+.hero { gap: clamp(48px, 6vw, 88px); padding-block: clamp(36px, 5vw, 72px); }
+.shop-grid { gap: clamp(22px, 2.6vw, 34px); }
+.shop-card-body { padding-block: 18px 20px; }
+
+/* Interactive hero photo: tilts toward the pointer or finger, with a soft glare that follows it */
+.hero-image { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .6s cubic-bezier(.2,.7,.2,1), box-shadow .6s ease; touch-action: pan-y; will-change: transform; }
+.hero-image.is-tilting { transition: transform .12s linear, box-shadow .3s ease; box-shadow: 0 30px 70px rgba(92,61,46,.16); }
+.hero-glare { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; opacity: 0; transition: opacity .4s ease; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,.34), transparent 55%); }
+.hero-image.is-tilting .hero-glare { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .hero-image { transform: none; transition: none; } .hero-glare { display: none; } }

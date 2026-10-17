@@ -10,6 +10,19 @@ export default defineConfig(({ mode, command }) => {
   for (const key of ['NVIDIA_API_KEY', 'NVIDIA_MODEL', 'CHAT_ENABLED']) if (env[key] !== undefined) process.env[key] = env[key]
   return {
     base: mode === 'pages' ? '/aureatine/' : '/',
+    build: {
+      chunkSizeWarningLimit: 700,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined
+            if (/[\\/]node_modules[\\/]@supabase[\\/]/.test(id)) return 'supabase'
+            if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'react'
+            return 'vendor'
+          }
+        }
+      }
+    },
     plugins: [react(), tailwindcss(), { name: 'local-chat-api', configureServer(server) { server.middlewares.use('/api/chat', (req, res) => { chatHandler(req, res).catch(() => { res.statusCode = 500; res.end('{"error":"Chat unavailable."}') }) }) } }],
     server: { host: '0.0.0.0', allowedHosts: ['.e2b.app'] }
   }

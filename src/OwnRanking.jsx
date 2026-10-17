@@ -19,7 +19,7 @@ export default function OwnRanking({ userId, refresh = 0, Link, profile = false 
     try {
       const { data, error: failure } = await supabase.rpc('get_my_leaderboard_standing')
       if (!alive.current) return
-      if (failure || !data?.ok) { if (!silent) setError('Your ranking is unavailable. The latest database setup may still need to be installed.'); return }
+      if (failure || !data?.ok) { if (!silent) setError('Your ranking is unavailable right now. Please try again later.'); return }
       setError('')
       setStanding(data)
     } catch {

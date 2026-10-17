@@ -1,4 +1,4 @@
-const ACCOUNT_ROUTES = ['/profile', '/member-card', '/tasks', '/admin', '/login', '/signup', '/forgot-password', '/reset-password']
+const ACCOUNT_ROUTES = ['/profile', '/member-card', '/tasks', '/orders', '/admin', '/login', '/signup', '/forgot-password', '/reset-password']
 
 export default function MobileTabBar({ page, session, Link, Icon }) {
   const tabs = [

@@ -28,7 +28,7 @@ export function CheckEmailPage({ Link }) {
   const [busy, setBusy] = useState(false)
   async function resend() {
     setResult(null)
-    if (!supabase) { setResult({ tone: 'error', text: 'Accounts are not connected yet. Please check back later.' }); return }
+    if (!supabase) { setResult({ tone: 'error', text: 'Log in is unavailable right now. Please try again later.' }); return }
     if (!email) { setResult({ tone: 'error', text: 'Sign up again so we know where to send the link.' }); return }
     setBusy(true)
     try {
@@ -73,7 +73,7 @@ export function ConfirmEmailPage({ Link }) {
     const errorCode = hash.get('error_code') || query.get('error_code')
     const errorDescription = hash.get('error_description') || query.get('error_description') || hash.get('error') || query.get('error')
     const cleanUrl = () => { try { window.history.replaceState({}, '', appHref('/confirm')) } catch { /* storage unavailable */ } }
-    if (!supabase) { setStatus({ state: 'error', text: 'Accounts are not connected yet. Please check back later.' }); return }
+    if (!supabase) { setStatus({ state: 'error', text: 'Log in is unavailable right now. Please try again later.' }); return }
     ;(async () => {
       try {
         if (errorCode || errorDescription) {

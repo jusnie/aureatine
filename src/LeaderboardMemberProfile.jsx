@@ -17,7 +17,7 @@ function ProfileDetails({ memberId, Link }) {
     const controller = new AbortController()
     let active = true
     if (!validId(memberId) || !supabase) {
-      setState({ error: 'Member profiles are not connected yet. Please try again after the account setup is updated.' })
+      setState({ error: 'This profile is unavailable right now. Please try again later.' })
       return () => { active = false }
     }
     setState({ loading: true })

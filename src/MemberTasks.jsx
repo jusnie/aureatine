@@ -20,7 +20,7 @@ export default function MemberTasks({ userId, onBalanceChange }) {
         if(refresh===0){signupRequest.current ||= Promise.resolve(supabase.rpc('claim_member_task',{p_task:'signup'}));const{data:bonus,error}=await signupRequest.current;if(!active)return;if(!error&&bonus?.ok&&Number.isSafeInteger(bonus.balance)){onBalance.current?.(bonus.balance);if(bonus.awarded)setMessage('Welcome! Your verified account earned 15 signup points.')}}
         const{data:status,error}=await supabase.rpc('get_member_tasks');if(!active)return
         if(error||!status?.ok)throw Error('setup');setData(status)
-      }catch{if(active)setMessage('Tasks are not available yet. Check the database setup or try Refresh tasks.')}finally{if(active)setLoading(false)}
+      }catch{if(active)setMessage('Tasks are unavailable right now. Please try Refresh tasks.')}finally{if(active)setLoading(false)}
     }load();return()=>{active=false}
   },[userId,refresh])
   // Re-read the tasks when the next 24-hour window opens.
@@ -42,7 +42,7 @@ export default function MemberTasks({ userId, onBalanceChange }) {
     {!data?<p className="member-helper">{loading?'Loading your verified task progress…':'Task progress unavailable. No sample Aurels or streaks are shown.'}</p>:<>
       <div className="member-streak-grid"><div><span>Daily check-in streak</span><strong>{data.daily_streak.current} <small>days</small></strong><p>Best: {data.daily_streak.best} days</p></div><div><span>Gym visit streak</span><strong>{data.gym_streak.current} <small>days</small></strong><p>Best: {data.gym_streak.best} days</p></div></div>
       <div className="member-task-grid">{tasks.map(task=><article key={task.key} className="member-task-card"><span className="task-points">+{task.points} Aurels</span><h3>{task.label}</h3><p>{task.description}</p>{task.until&&task.done&&<AvailableCountdown until={task.until}/>}{task.key==='gym_five_days'&&<><progress max="5" value={Math.min(5,data.gym_days)} aria-label="Gym visit days toward five-day task"/><small>{Math.min(5,data.gym_days)} / 5 days since your last claim · repeats every 24 hours</small></>}<button className="button outline" disabled={loading||Boolean(busy)||task.done||!task.ready} onClick={()=>claim(task.key)}>{busy===task.key?'Confirming…':task.done?(task.until?'Claimed':'Completed'):!task.ready?'Keep making progress':'Claim points'}</button></article>)}</div>
-      <p className="member-helper">Streaks count consecutive Philippine dates, not repeated actions in one day. A streak remains current if you checked in yesterday; missing a full day resets it. The five-day task counts total unique visit dates, separately from your streak.</p>
+      <p className="member-helper">Streaks count days in a row. Miss a full day and the streak resets. The five-day task counts total unique visit dates, separately from your streak.</p>
 
       {data.history?.length>0&&<details className="task-history"><summary>Recent task Aurels</summary><ul>{data.history.map((item,i)=><li key={`${item.task}-${item.claim_day}-${i}`}><span>{historyLabel[item.task]||item.task} · {item.claim_day}</span><strong>+{item.points}</strong></li>)}</ul></details>}
     </>}

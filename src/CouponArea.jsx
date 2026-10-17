@@ -120,7 +120,7 @@ export default function CouponArea({ session, balance, onBalanceChange }) {
       <div className="coupon-head-text">
         <span className="coupon-kicker"><CouponIcon size={16}/> COUPONS</span>
         <h2 id="coupon-title">Treat yourself after the routine.</h2>
-        <p>150 Aurels per coupon. Redeem up to 2 of each coupon a week. You get a 6-letter code to show staff. Each code works once.</p>
+        <p>150 Aurels per coupon. Up to 2 of each coupon per week. Show the 6-letter code to staff. Each code works once.</p>
       </div>
       {session && <a className="coupon-inbox-link" href={appHref('/inbox')}>Inbox updates</a>}
     </header>

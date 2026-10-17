@@ -28,7 +28,7 @@ export default function Inbox({ session }) {
     <h1>Your inbox</h1>
     <p className="coupon-note">Coupon updates and announcements from Aureatine x APEX.</p>
     {!session ? <p className="coupon-note">Log in to see your updates. <a href={appHref('/login')}>Log in</a></p>
-      : !supabase ? <p className="coupon-note">Updates are not connected yet.</p>
+      : !supabase ? <p className="coupon-note">Updates are unavailable right now.</p>
       : state.loading ? <p className="coupon-note">Loading your inbox…</p>
       : state.error ? <p className="coupon-error" role="alert">{state.error}</p>
       : state.items.length === 0 ? <p className="coupon-note">No updates yet. Coupon updates and announcements will appear here.</p>

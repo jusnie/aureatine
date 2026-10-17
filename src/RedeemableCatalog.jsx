@@ -95,14 +95,14 @@ export default function RedeemableCatalog({ children, session, balance, onBalanc
           {rewardCategories.map(option => <button key={option.value} type="button" className="shop-filter-option" aria-pressed={category === option.value} onClick={() => setCategory(option.value)}><span>{option.label}</span><small>{countFor(option.value)}</small></button>)}
         </fieldset>
         {filtersActive && <button type="button" className="catalog-reset" onClick={clearFilters}>Clear filters</button>}
-        <p className="brand-art-note">Brand logos identify the collection filters. No brand partnership or reward availability is implied.</p>
+        <p className="brand-art-note">Brand logos are for filtering only. They do not imply a partnership.</p>
       </details>
       <div className="shop-main">
         <div className="shop-toolbar">
           <output className="shop-count"><strong>{brand === 'all' ? 'All brands' : brand}{category !== 'all' ? ` · ${rewardCategories.find(option => option.value === category).label}` : ''}</strong> · {items.length} {items.length === 1 ? 'item' : 'items'}{!items.length && !rewardItems.length ? ' · awaiting confirmed product details' : ''}</output>
           <label className="shop-sort"><span>Sort by</span><select id="reward-sort" value={sort} onChange={e => setSort(e.target.value)}><option value="points-asc">Aurels: lowest to highest</option><option value="points-desc">Aurels: highest to lowest</option><option value="name">Item name: A–Z</option></select></label>
         </div>
-        {rewardItems.length > 0 && <div className="redemption-count-info"><p>Counts show unique members with completed redemptions, not item quantities. Member identities stay private.</p><button type="button" disabled={!supabase || countLoading} onClick={() => setCountRefresh(n => n + 1)}>Refresh counts</button></div>}
+        {rewardItems.length > 0 && <div className="redemption-count-info"><p>Counts show how many members redeemed each item. Names stay private.</p><button type="button" disabled={!supabase || countLoading} onClick={() => setCountRefresh(n => n + 1)}>Refresh counts</button></div>}
         {items.length
           ? <div className="shop-grid">{items.map((product, index) => <ProductCard key={product.key} product={product} countLabelFor={countLabelFor} onOpen={openRewardProduct} index={index}/>)}</div>
           : <>{rewardItems.length === 0 && <PlaceholderCards/>}{filtersActive && <p className="catalog-brand-empty">No {brand !== 'all' ? `${brand} ` : ''}{category === 'all' ? 'items' : category} have been added yet. Try another filter or check back when the collection is ready.</p>}{children}</>}
