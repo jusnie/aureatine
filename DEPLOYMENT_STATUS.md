@@ -122,3 +122,9 @@
 - To populate: add entries to `MENU_SECTIONS[0].items` with `name`, `description`, `price` (number, pesos), and `allergens`.
 - `scripts/prepare-pages.mjs` includes `menu`, so GitHub Pages can load `/menu` directly.
 - Checks: build, `build:pages`, and aislop pass (5 existing warnings). `/menu` on laptop and phone: heading "Menu", no page errors, no horizontal overflow, the phone tab bar shows Menu as current, and no "Our shakes" link remains.
+
+## Push to GitHub (this turn)
+- Pushed `edb5efe` to `jusnie/aureatine` main as a fast-forward on `8c9db42`. It includes the EXP ranks, Aurels rename, logo, PWA install, device-aware mobile shell, menu page, leaderboard and member-card work, and the rebuilt `docs/` for GitHub Pages.
+- The one-time token was used for this push only and was not saved. The temporary clone was removed. The token should be revoked.
+- Verified live: https://aureatine.cc.cd/menu and https://jusnie.github.io/aureatine/menu/ return 200, and the manifest loads on both.
+- Not run: the SQL file has not been run in Supabase. Run `supabase/aureatine-full-setup.sql` once in the SQL Editor.

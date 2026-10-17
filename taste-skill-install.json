@@ -1,0 +1,20 @@
+{
+  "source": "https://github.com/leonxlnx/taste-skill",
+  "commit": "717446e07a78d4e6d7918b1fde1a263378eebac9",
+  "skills": [
+    "brandkit",
+    "industrial-brutalist-ui",
+    "gpt-taste",
+    "image-to-code",
+    "imagegen-frontend-mobile",
+    "imagegen-frontend-web",
+    "minimalist-ui",
+    "full-output-enforcement",
+    "redesign-existing-projects",
+    "high-end-visual-design",
+    "stitch-design-taste",
+    "design-taste-frontend",
+    "design-taste-frontend-v1"
+  ],
+  "method": "Copied complete skill directories to project .agents/skills"
+}

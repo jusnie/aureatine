@@ -1,6 +1,6 @@
 .auth-status{display:grid;gap:6px;max-width:560px;margin:20px 0;padding:16px 18px;border:1px solid;border-radius:10px;font-size:14px;line-height:1.6}
 .auth-status strong{font:600 15px/1.4 'DM Sans',sans-serif}
-.auth-status-success{background:#EDE0D4;border-color:rgba(127,85,57,0.28);color:#4A2F20;box-shadow:var(--sh-out)}
+.auth-status-success{background:#DFF5E1;border-color:rgba(46,125,50,0.45);color:#1B5E20;box-shadow:var(--sh-out)}
 .auth-status-error{background:#EDE0D4;border-color:rgba(127,85,57,0.28);color:#4A2F20;box-shadow:var(--sh-out)}
 .auth-status-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
 .auth-status-actions .button{min-height:44px}

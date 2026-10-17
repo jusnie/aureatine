@@ -4,6 +4,7 @@ import { parseMemberCode, purchaseCentavos, prepareAvatar } from './memberUtils'
 import './members.css'
 import './memberShareCard.css'
 import MemberScanner from './MemberScanner'
+import CouponVerify from './CouponVerify'
 import MemberTasks from './MemberTasks'
 import OwnRanking from './OwnRanking'
 import MemberCommunity, { CommunityStats, SocialLinks, socialValues, validSocialURL } from './MemberCommunity'
@@ -210,6 +211,7 @@ function StaffScanner({ session, Link }) {
           </fieldset></div>}
       </>}
     </section>}
+    {roles?.length>0&&<CouponVerify/>}
   </article>
 }
 
