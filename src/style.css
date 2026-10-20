@@ -186,3 +186,10 @@ output.form-message{display:block}
 .hero-glare { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; opacity: 0; transition: opacity .4s ease; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,.34), transparent 55%); }
 .hero-image.is-tilting .hero-glare { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .hero-image { transform: none; transition: none; } .hero-glare { display: none; } }
+
+/* Shop photo in the "Shake break" section: fixed 16:9 frame */
+.shake-crop.shake-crop-16x9 { height: auto; aspect-ratio: 16 / 9; }
+.shake-crop.shake-crop-16x9 img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+
+/* how-it-works video in the taste section (16:9, same crop as the old still) */
+.shake-crop.shake-crop-16x9 video{width:100%;height:100%;object-fit:cover;display:block;background:#1d130d;}

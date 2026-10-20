@@ -1,0 +1,32 @@
+/* Desktop-only liquid cursor. Hidden on touch/mobile (the component never mounts there). */
+html.lc-active,
+html.lc-active *:not(input):not(textarea):not(select):not([contenteditable="true"]) { cursor: none !important; }
+
+.lc-stage { position: fixed; inset: 0; pointer-events: none; z-index: 2147483000; filter: url(#lc-goo); }
+
+.lc-blob { position: absolute; left: 0; top: 0; border-radius: 50%; will-change: transform;
+  background: radial-gradient(circle at 35% 30%, #f0d2a6 0%, #B07A50 45%, #7F5539 100%); box-shadow: 0 0 0 1px rgba(127,85,57,.25); }
+
+.lc-core { width: 30px; height: 30px; animation: lc-morph 3.2s ease-in-out infinite;
+  transition: width .35s cubic-bezier(.2,.8,.2,1), height .35s cubic-bezier(.2,.8,.2,1); }
+.lc-t1 { width: 20px; height: 20px; transition: opacity .3s ease; }
+.lc-t2 { width: 15px; height: 15px; transition: opacity .3s ease; }
+.lc-t3 { width: 11px; height: 11px; transition: opacity .3s ease; }
+.lc-t4 { width: 8px; height: 8px; transition: opacity .3s ease; }
+.lc-stage.is-hover .lc-core { width: 58px; height: 58px; }
+.lc-stage.is-hover .lc-t1, .lc-stage.is-hover .lc-t2, .lc-stage.is-hover .lc-t3, .lc-stage.is-hover .lc-t4 { opacity: .55; }
+.lc-stage.is-down .lc-core { width: 20px; height: 20px; }
+.lc-stage.is-hover.is-down .lc-core { width: 40px; height: 40px; }
+
+.lc-ripple { position: absolute; left: 0; top: 0; border-radius: 50%; background: #A9714B;
+  animation: lc-ripple .7s cubic-bezier(.2,.7,.3,1) forwards; }
+
+@keyframes lc-morph {
+  0%, 100% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; }
+  33% { border-radius: 58% 42% 46% 54% / 44% 56% 44% 56%; }
+  66% { border-radius: 42% 58% 55% 45% / 58% 42% 57% 43%; }
+}
+@keyframes lc-ripple {
+  from { width: 10px; height: 10px; margin: -5px 0 0 -5px; opacity: .85; }
+  to { width: 92px; height: 92px; margin: -46px 0 0 -46px; opacity: 0; }
+}
