@@ -7,7 +7,7 @@ export default defineConfig(({ mode, command }) => {
   if (command === 'build' && (!env.VITE_SUPABASE_URL?.trim() || !env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() || env.VITE_SUPABASE_URL.includes('YOUR-PROJECT'))) {
     throw new Error('Missing public Supabase configuration. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY before building. Never use a service-role key.')
   }
-  for (const key of ['NVIDIA_API_KEY', 'NVIDIA_MODEL', 'CHAT_ENABLED']) if (env[key] !== undefined) process.env[key] = env[key]
+  for (const key of ['GROQ_API_KEY', 'GROQ_MODEL', 'CHAT_ENABLED']) if (env[key] !== undefined) process.env[key] = env[key]
   return {
     base: mode === 'pages' ? '/aureatine/' : '/',
     build: {

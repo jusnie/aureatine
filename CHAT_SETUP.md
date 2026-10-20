@@ -1,4 +1,22 @@
-# Aureatine AI — NVIDIA-hosted GLM
+# Aureatine AI — Groq-hosted model
+
+## Current provider: Groq (replaces NVIDIA)
+`api/chat.js` now calls Groq's OpenAI-compatible endpoint `https://api.groq.com/openai/v1/chat/completions`. The frontend sends `provider: 'groq'`, and requests that still say `nvidia` are rejected so users re-consent to Groq processing.
+
+Vercel project → Settings → Environment Variables:
+- Add `GROQ_API_KEY` (Sensitive, Production). It must be the real Groq secret key.
+- Optional: `GROQ_MODEL`. Default is `openai/gpt-oss-20b`. Other production options listed by Groq include `openai/gpt-oss-120b` and `qwen/qwen3.8-27b`.
+- Keep `CHAT_ENABLED=true`.
+- Remove `NVIDIA_API_KEY` and `NVIDIA_MODEL` once Groq is working.
+- Redeploy so the new `api/chat.js` and frontend go live. Saving variables alone does not switch providers.
+
+Check: open `/api/chat` in a browser. It should show `"provider":"groq"` and `"available":true`. That only checks the key is set, not that Groq accepts it.
+
+Terms: https://groq.com/terms-of-use . Review them before public launch.
+
+The NVIDIA notes below are kept for history.
+
+## Previous provider: NVIDIA-hosted GLM (historical)
 
 ## Current provider
 The server is configured for `z-ai/glm-5.3-flash`, exactly as shown in the owner's NVIDIA Build screenshot, using `https://integrate.api.nvidia.com/v1/chat/completions` (OpenAI-compatible request shape; no OpenAI account/key required). This replaces Gemini; there is no silent Gemini fallback.

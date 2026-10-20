@@ -25,8 +25,8 @@ async function getBody(req) {
   return JSON.parse(text)
 }
 export default async function handler(req, res) {
-  const enabled = process.env.CHAT_ENABLED !== 'false' && Boolean(process.env.NVIDIA_API_KEY)
-  if (req.method === 'GET') return reply(res, 200, { available: enabled, provider: 'nvidia', streaming: true, nutritionCalculator: true, gymGuidanceVersion: 2, adultOnly: true })
+  const enabled = process.env.CHAT_ENABLED !== 'false' && Boolean(process.env.GROQ_API_KEY)
+  if (req.method === 'GET') return reply(res, 200, { available: enabled, provider: 'groq', streaming: true, nutritionCalculator: true, gymGuidanceVersion: 2, adultOnly: true })
   if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); return reply(res, 405, { error: 'This method is not supported.' }) }
   if (!enabled) return reply(res, 503, { error: 'The assistant is not connected yet. Please try again after setup.' })
   const origin = req.headers.origin
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
   let body
   try { body = await getBody(req) } catch { return reply(res, 400, { error: 'The message is invalid or too long.' }) }
   if (!body || body.consent !== true || !Array.isArray(body.messages) || body.messages.length < 1 || body.messages.length > 12) return reply(res, 400, { error: 'Please agree to message processing and send a shorter conversation.' })
-  if (body.provider !== 'nvidia') return reply(res, 400, { error: 'Our AI provider has changed. Refresh this page and agree to NVIDIA message processing before sending.' })
+  if (body.provider !== 'groq') return reply(res, 400, { error: 'Our AI provider has changed. Refresh this page and agree to Groq message processing before sending.' })
   let total = 0
   for (const message of body.messages) {
     if (!message || !['user','assistant'].includes(message.role) || typeof message.content !== 'string' || !message.content.trim() || message.content.length > 1600) return reply(res, 400, { error: 'Please keep each message under 1,600 characters.' })
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     if (!estimate.ok) return reply(res, 400, { error: estimate.error })
     calculatorContext = '\nCALCULATOR ESTIMATES (computed by this server): ' + nutritionContext(estimate)
   }
-  const model = process.env.NVIDIA_MODEL || 'z-ai/glm-5.3-flash'
+  const model = process.env.GROQ_MODEL || 'openai/gpt-oss-20b'
   if (!/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/.test(model)) return reply(res, 503, { error: 'The assistant needs a configuration update.' })
   const streaming = body.stream === true && typeof res.write === 'function'
   const controller = new AbortController()
@@ -71,9 +71,9 @@ export default async function handler(req, res) {
   try {
     // Retry only a completed, empty answer, within the original deadline.
     for (let attempt = 0; attempt < 2; attempt++) {
-      const result = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+      const result = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST', signal: controller.signal,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.NVIDIA_API_KEY}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
         body: JSON.stringify({ model, messages: [{ role: 'system', content: INSTRUCTIONS + calculatorContext + (calculatorContext ? '\nKeep this explanation under 100 words. State the supplied maintenance and protein estimates accurately, then give two practical next steps. Do not repeat the full calculator input list.' : '\nFor simple questions answer in one or two sentences. Otherwise use at most 120 words.') }, ...body.messages.map(({role,content}) => ({role,content}))], temperature: .5, top_p: 1, max_tokens: attempt ? 1536 : calculatorContext ? 768 : 384, stream: streaming })
       })
       if (!result.ok) {
@@ -90,7 +90,7 @@ export default async function handler(req, res) {
         const choice = data.choices?.[0]
         if (choice?.finish_reason === 'content_filter' || choice?.message?.refusal) return reply(res,422,{error:'The provider could not answer this request. Ask a general fitness question instead.'})
         if (!text && ['stop','length'].includes(choice?.finish_reason) && mayRetry()) continue
-        if(!text)return reply(res,422,{error:'NVIDIA finished without an answer. Please try again shortly.'})
+        if(!text)return reply(res,422,{error:'The provider finished without an answer. Please try again shortly.'})
         return reply(res,200,{reply:text.slice(0,8000)})
       }
       if (!started) {
@@ -120,7 +120,7 @@ export default async function handler(req, res) {
       if(!complete)throw new Error('Stream interrupted')
       if(!answer.trim() && !refused && ['stop','length',null].includes(finishReason) && mayRetry()) continue
       if(finishReason==='content_filter' || refused)send({type:'error',error:'The provider stopped this answer. Ask a general fitness question instead.'})
-      else if(!answer.trim())send({type:'error',error:'NVIDIA finished without an answer. Please try again shortly.'})
+      else if(!answer.trim())send({type:'error',error:'The provider finished without an answer. Please try again shortly.'})
       else send({type:'done',truncated:finishReason==='length'})
       res.end();return
     }
@@ -128,7 +128,7 @@ export default async function handler(req, res) {
     if(controller.signal.reason==='disconnected')return
     const timedOut = controller.signal.reason === 'timeout'
     const error = timedOut
-      ? (answerSent ? 'NVIDIA reached the time limit. The answer above is incomplete; try again shortly.' : 'NVIDIA did not finish within 50 seconds. Please try again shortly.')
+      ? (answerSent ? 'The assistant reached the time limit. The answer above is incomplete; try again shortly.' : 'The assistant did not finish within 50 seconds. Please try again shortly.')
       : (answerSent ? 'The response was interrupted. The answer above is incomplete; try again.' : 'The response was interrupted before an answer arrived. Please try again.')
     if(started){send({type:'error',error});res.end()}
     else return reply(res,timedOut ? 504 : 502,{error})
