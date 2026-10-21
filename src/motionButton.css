@@ -1,14 +1,21 @@
-.motion-button{position:relative;overflow:hidden;transition:width .5s cubic-bezier(.2,.8,.2,1),padding .5s cubic-bezier(.2,.8,.2,1),background-color .4s ease,box-shadow .4s ease,transform .25s ease}
-.motion-button .mb-label{display:inline-flex;align-items:center;gap:22px;max-width:420px;white-space:nowrap;overflow:hidden;transition:max-width .5s cubic-bezier(.2,.8,.2,1),opacity .25s ease,transform .35s ease}
-.motion-button .mb-spinner,.motion-button .mb-check{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;pointer-events:none;opacity:0;transform:scale(.6);transition:opacity .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
+.motion-button{position:relative;overflow:hidden;transition:width .55s cubic-bezier(.2,.8,.2,1),padding .55s cubic-bezier(.2,.8,.2,1),background-color .5s ease,box-shadow .5s ease,transform .3s ease}
+.motion-button .mb-label{display:inline-flex;align-items:center;gap:22px;max-width:420px;white-space:nowrap;overflow:hidden;transition:max-width .55s cubic-bezier(.2,.8,.2,1) .05s,opacity .35s ease .18s,transform .45s cubic-bezier(.2,.8,.2,1) .15s}
+.motion-button .mb-spinner,.motion-button .mb-check,.motion-button .mb-x{position:absolute;left:50%;top:50%;width:24px;height:24px;margin:-12px 0 0 -12px;pointer-events:none;opacity:0;transform:scale(.5);transition:opacity .3s ease,transform .45s cubic-bezier(.3,1.4,.5,1)}
 .motion-button .mb-spinner{border:2.5px solid rgba(255,255,255,.3);border-top-color:#ffffff;border-radius:50%}
-.motion-button .mb-check{fill:none;stroke:#ffffff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:26;stroke-dashoffset:26;transition:stroke-dashoffset .45s ease .1s,opacity .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
+.motion-button .mb-check,.motion-button .mb-x{fill:none;stroke:#ffffff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.motion-button .mb-x{width:22px;height:22px;margin:-11px 0 0 -11px}
+.motion-button .mb-check path,.motion-button .mb-x path{stroke-dasharray:30;stroke-dashoffset:30;transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1) .15s}
 .motion-button .mb-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.motion-button[data-phase=loading],.motion-button[data-phase=success]{display:flex;width:58px;min-width:58px;max-width:58px;padding-inline:0;margin-left:auto;margin-right:auto;justify-content:center}
-.motion-button[data-phase=loading] .mb-label,.motion-button[data-phase=success] .mb-label{max-width:0;opacity:0;transform:translateY(-6px)}
+.motion-button[data-phase=loading],.motion-button[data-phase=success],.motion-button[data-phase=error]{display:flex;width:58px;min-width:58px;max-width:58px;padding-inline:0;margin-left:auto;margin-right:auto;justify-content:center}
+.motion-button[data-phase=loading] .mb-label,.motion-button[data-phase=success] .mb-label,.motion-button[data-phase=error] .mb-label{max-width:0;opacity:0;transform:translateY(-6px);transition-delay:0s}
 .motion-button[data-phase=loading] .mb-spinner{opacity:1;transform:none;animation:mb-spin .8s linear infinite}
-.motion-button[data-phase=success] .mb-check{opacity:1;transform:none;stroke-dashoffset:0}
+.motion-button[data-phase=success] .mb-check,.motion-button[data-phase=error] .mb-x{opacity:1;transform:none}
+.motion-button[data-phase=success] .mb-check path,.motion-button[data-phase=error] .mb-x path{stroke-dashoffset:0}
+.button.motion-button[data-phase=success]{background:#2f7d4f;box-shadow:0 12px 26px -10px rgba(47,125,79,.6)}
+.button.motion-button[data-phase=error]{background:#B5472F;box-shadow:0 12px 26px -10px rgba(181,71,47,.55);animation:mb-shake .55s cubic-bezier(.36,.07,.19,.97) both}
 .motion-button:disabled{opacity:1;cursor:progress}
-.motion-button[data-phase=success]:disabled{background:#2f7d4f;box-shadow:0 0 0 0 rgba(47,125,79,0)}
+.button.motion-button[data-phase=success]:disabled{background:#2f7d4f}
+.button.motion-button[data-phase=error]:disabled{background:#B5472F}
 @keyframes mb-spin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion: reduce){.motion-button,.motion-button *{transition-duration:.01ms!important}.motion-button[data-phase=loading] .mb-spinner{animation-duration:2.4s}}
+@keyframes mb-shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.motion-button,.motion-button *{transition-duration:.01ms!important;animation-duration:.01ms!important}.motion-button[data-phase=loading] .mb-spinner{animation-duration:2.4s!important}}

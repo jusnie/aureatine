@@ -1,8 +1,8 @@
 import './motionButton.css'
 
-// Button that morphs through idle -> loading -> success.
-// phase: 'idle' | 'loading' | 'success'. Callers set phase; on error they set it back to 'idle'.
-export default function MotionButton({ phase = 'idle', loadingText = 'Working', doneText = 'Done', className = '', disabled, children, ...rest }) {
+// Button that morphs through idle -> loading -> success (green, check) or error (red, X) and back to idle.
+// Callers set phase. On error they set phase 'error' and reset to 'idle' after a short hold.
+export default function MotionButton({ phase = 'idle', loadingText = 'Working', doneText = 'Done', errorText = 'Please try again', className = '', disabled, children, ...rest }) {
   const busy = phase !== 'idle'
   return (
     <button
@@ -15,7 +15,8 @@ export default function MotionButton({ phase = 'idle', loadingText = 'Working', 
       <span className="mb-label">{children}</span>
       <span className="mb-spinner" aria-hidden="true"/>
       <svg className="mb-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.6l4.4 4.4L19 7.6"/></svg>
-      <span className="mb-sr" role="status">{phase === 'loading' ? loadingText : phase === 'success' ? doneText : ''}</span>
+      <svg className="mb-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+      <span className="mb-sr" role="status">{phase === 'loading' ? loadingText : phase === 'success' ? doneText : phase === 'error' ? errorText : ''}</span>
     </button>
   )
 }

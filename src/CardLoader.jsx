@@ -1,54 +1,74 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import './cardLoader.css'
 
-// Liquid-fill loader for the member card. Fills slowly while the card renders (never claims 100% early).
-// When `ready` turns true it fills to the top, shows a check, then calls onComplete so the card can sync in.
+const BUBBLES = [
+  { left: '18%', bottom: '8%', size: 9, delay: '0s', dur: '5.2s' },
+  { left: '40%', bottom: '14%', size: 6, delay: '1.7s', dur: '4.6s' },
+  { left: '64%', bottom: '6%', size: 11, delay: '0.9s', dur: '6s' },
+  { left: '80%', bottom: '18%', size: 7, delay: '2.6s', dur: '5.4s' },
+]
+
+// Reference-style liquid loader: liquid rises and the count climbs while the card renders.
+// When `ready` turns true it fills to 100, turns green with a smiley and "DONE!", then calls onComplete.
 export default function CardLoader({ ready = false, onComplete, label = 'Preparing your card' }) {
   const rootRef = useRef(null), liquidRef = useRef(null), numRef = useRef(null)
   const readyRef = useRef(ready), completeRef = useRef(onComplete)
-  const [done, setDone] = useState(false)
   readyRef.current = ready
   completeRef.current = onComplete
 
   useEffect(() => {
-    let raf = 0, timer = 0, p = 0, finished = false, fromValue = null, finishStart = 0
+    let raf = 0, p = 0, from = null, t0 = 0
+    const timers = []
+    const root = rootRef.current
     const draw = v => {
       if (liquidRef.current) liquidRef.current.style.transform = `translateY(${100 - v}%)`
-      if (numRef.current) numRef.current.textContent = String(Math.round(v))
+      if (numRef.current) numRef.current.textContent = String(Math.floor(v))
     }
     const loop = now => {
       if (readyRef.current) {
-        if (fromValue === null) { fromValue = p; finishStart = now }
-        const t = Math.min(1, (now - finishStart) / 650)
-        p = fromValue + (100 - fromValue) * (1 - Math.pow(1 - t, 3))
-        if (t >= 1 && !finished) {
-          finished = true
+        if (from === null) { from = p; t0 = now }
+        const t = Math.min(1, (now - t0) / 800)
+        p = from + (100 - from) * (1 - Math.pow(1 - t, 3))
+        draw(p)
+        if (t >= 1) {
           draw(100)
-          setDone(true)
-          timer = window.setTimeout(() => completeRef.current && completeRef.current(), 1150)
+          if (root) root.dataset.state = 'done'
+          timers.push(setTimeout(() => root && root.classList.add('is-leaving'), 1300))
+          timers.push(setTimeout(() => completeRef.current && completeRef.current(), 1700))
           return
         }
       } else {
-        p += (92 - p) * 0.018
+        // Uneven steps, like a real progress readout. Never reaches 94 on its own.
+        p += (94 - p) * (0.008 + Math.random() * 0.018)
+        draw(p)
       }
-      draw(p)
       raf = requestAnimationFrame(loop)
     }
     raf = requestAnimationFrame(loop)
-    return () => { cancelAnimationFrame(raf); window.clearTimeout(timer) }
+    return () => { cancelAnimationFrame(raf); timers.forEach(clearTimeout) }
   }, [])
 
   return (
-    <div ref={rootRef} className={`card-loader${done ? ' is-done' : ''}`} role="status" aria-label={label}>
-      <div className="card-loader-orb" aria-hidden="true">
-        <div className="card-loader-liquid" ref={liquidRef}>
-          <svg className="card-loader-wave" viewBox="0 0 400 28" preserveAspectRatio="none"><path d="M0 14 Q50 0 100 14 T200 14 T300 14 T400 14 V28 H0Z"/></svg>
-          <svg className="card-loader-wave card-loader-wave--back" viewBox="0 0 400 28" preserveAspectRatio="none"><path d="M0 14 Q50 28 100 14 T200 14 T300 14 T400 14 V28 H0Z"/></svg>
+    <div ref={rootRef} className="cl-root" data-state="loading" role="status" aria-label={label}>
+      <div className="cl-stage">
+        <div className="cl-halo" aria-hidden="true"/>
+        <div className="cl-halo cl-halo--ok" aria-hidden="true"/>
+        <div className="cl-ball" aria-hidden="true">
+          <div className="cl-liquid" ref={liquidRef}>
+            <svg className="cl-wave" viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12 Q50 0 100 12 T200 12 T300 12 T400 12 V24 H0Z"/></svg>
+            <svg className="cl-wave cl-wave--back" viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12 Q50 24 100 12 T200 12 T300 12 T400 12 V24 H0Z"/></svg>
+            {BUBBLES.map((b, i) => <i key={i} className="cl-bubble" style={{ left: b.left, bottom: b.bottom, width: b.size, height: b.size, animationDelay: b.delay, animationDuration: b.dur }}/>)}
+          </div>
+          <span className="cl-num"><span ref={numRef}>0</span><small>%</small></span>
+          <svg className="cl-face" viewBox="0 0 100 100" aria-hidden="true">
+            <path className="cl-eye" d="M30 46 Q37 36 44 46"/>
+            <path className="cl-eye" d="M56 46 Q63 36 70 46"/>
+            <path className="cl-mouth" d="M34 58 Q50 78 66 58 Z"/>
+            <path className="cl-tongue" d="M43 67 Q50 77 57 67 Q50 72 43 67 Z"/>
+          </svg>
         </div>
-        <span className="card-loader-num"><span ref={numRef}>0</span><small>%</small></span>
-        <svg className="card-loader-check" viewBox="0 0 24 24"><path d="M5 12.6l4.4 4.4L19 7.6"/></svg>
       </div>
-      <p className="card-loader-label" aria-hidden="true">{label}<span className="card-loader-dots"><i>.</i><i>.</i><i>.</i></span></p>
+      <p className="cl-label" aria-hidden="true"><span className="cl-loading">LOADING...</span><span className="cl-done">DONE!</span></p>
     </div>
   )
 }
