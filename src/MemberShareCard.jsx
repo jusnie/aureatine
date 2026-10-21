@@ -3,6 +3,7 @@ import {supabase} from './supabase'
 import {cardFacts,drawMemberCard,canvasPNG} from './memberCardCanvas'
 import './memberShareCard.css'
 import CardLoader from './CardLoader'
+import MotionButton from './MotionButton'
 function canShareFile(file){try{return Boolean(file&&navigator.canShare?.({files:[file]}))}catch{return false}}
 function DownloadIcon(){return <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg>}
 export default function MemberShareCard({session,Link}){
@@ -11,7 +12,7 @@ export default function MemberShareCard({session,Link}){
 }
 function CardEditor({userId,Link}){
  const[source,setSource]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[warnings,setWarnings]=useState([]),[version,setVersion]=useState(0)
- const[options,setOptions]=useState({photo:true,rank:true,achievements:true}),[output,setOutput]=useState(null),[rendering,setRendering]=useState(false),[notice,setNotice]=useState(''),[sharing,setSharing]=useState(false),[revealed,setRevealed]=useState(false)
+ const[options,setOptions]=useState({photo:true,rank:true,achievements:true}),[output,setOutput]=useState(null),[rendering,setRendering]=useState(false),[notice,setNotice]=useState(''),[sharing,setSharing]=useState(false),[revealed,setRevealed]=useState(false),[dlPhase,setDlPhase]=useState('idle')
  const alive=useRef(true)
  useEffect(()=>{alive.current=true;return()=>{alive.current=false}},[])
  useEffect(()=>{let active=true,photoURL;const abort=new AbortController();const timer=setTimeout(()=>abort.abort(),15000);setLoading(true);setSource(null);setError('');setWarnings([])
@@ -49,7 +50,7 @@ function CardEditor({userId,Link}){
  {error&&<output className="share-card-message">{error}</output>}{warnings.map(note=><p className="share-card-message" key={note}>{note}</p>)}
  <fieldset disabled={!source||loading||sharing}><legend>Include on your card</legend>{[['photo','Profile photo',Boolean(source?.image)],['rank','Leaderboard rank',Boolean(source?.rank)]].map(([key,label,available])=><label key={key}><input type="checkbox" checked={options[key]&&available} disabled={!available} onChange={e=>setOptions(current=>({...current,[key]:e.target.checked}))}/><span>{label}</span></label>)}</fieldset>
  {source&&<div className="share-card-facts"><p><strong>{source.profile.display_name}</strong><br/>@{source.profile.username}</p>{source.rankReady&&!source.rank&&<p>You are not listed on the leaderboard. No rank is added to your card.</p>}{!source.image&&<p>Your initial is used when no photo is available.</p>}<small>Snapshot: {source.snapshotDate} · Philippine date</small></div>}
- <div className="share-card-actions">{output&&!loading&&!rendering?<a className="button dark" href={output.url} download="Aureatine-member-card.png" onClick={()=>setNotice('PNG download requested. On some phones, open the image and choose Save Image.')}><DownloadIcon/>Download PNG</a>:<button className="button dark" disabled><DownloadIcon/>{loading||rendering?'Preparing…':'Download PNG'}</button>}{canShare&&<button className="button outline" disabled={sharing||rendering||loading} onClick={share}>{sharing?'Opening…':'Share card'}</button>}<button type="button" className="text-button" disabled={loading||sharing} onClick={()=>setVersion(n=>n+1)}>Refresh card details</button></div>
+ <div className="share-card-actions">{output&&!loading&&!rendering?<MotionButton as="a" href={output.url} download="Aureatine-member-card.png" phase={dlPhase} doneText="Download started" onClick={()=>{setDlPhase('success');window.setTimeout(()=>setDlPhase('idle'),1600);setNotice('PNG download requested. On some phones, open the image and choose Save Image.')}}><DownloadIcon/>Download PNG</MotionButton>:<MotionButton disabled phase={loading||rendering?'loading':'idle'} loadingText="Preparing your card"><DownloadIcon/>Download PNG</MotionButton>}{canShare&&<button className="button outline" disabled={sharing||rendering||loading} onClick={share}>{sharing?'Opening…':'Share card'}</button>}<button type="button" className="text-button" disabled={loading||sharing} onClick={()=>setVersion(n=>n+1)}>Refresh card details</button></div>
  {output&&source&&!loading&&<a href={output.url} target="_blank" rel="noopener noreferrer" className="share-open-image">Open full-size image ↗</a>}{notice&&<output className="share-card-message">{notice}</output>}
  <p className="share-card-privacy">1080 × 1350 PNG · Generated in your browser.<br/>No email, QR code or login details are included. Downloading does not share your photo publicly.</p><p className="share-card-disclaimer">A personal progress snapshot, not a membership pass. Ranks can change.</p>
  </aside></div></article>
