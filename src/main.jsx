@@ -40,6 +40,7 @@ import './device.css'
 import MyOrdersPage from './MyOrders'
 import { tiltMove, tiltReset } from './tilt'
 import MotionButton from './MotionButton'
+import './atmosphere.css'
 
 const logoSrc = `${import.meta.env.BASE_URL}images/aureatine-logo.webp`
 function Icon({ name, size = 20 }) {
@@ -103,7 +104,7 @@ function AboutPage() {
   </article>
 }
 function Atmosphere({ paused }) {
-  return <div className={paused ? 'atmosphere paused' : 'atmosphere'} aria-hidden="true"><div className="bg-drift drift-a"/><div className="bg-drift drift-b"/><div className="bg-drift drift-c"/><div className="bg-ring ring-a"/><div className="bg-ring ring-b"/><div className="ambient-orbit orbit-one"/><div className="ambient-orbit orbit-two"/><div className="ambient-orbit orbit-three"/><svg className="ambient-lines" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice"><path d="M-200 780C160 300 410 1110 840 500S1430 240 1700 450"/><path d="M-200 805C160 325 410 1135 840 525S1430 265 1700 475"/><path d="M-200 830C160 350 410 1160 840 550S1430 290 1700 500"/></svg></div>
+  return <div className={paused ? 'atmosphere paused' : 'atmosphere'} aria-hidden="true"><div className="bg-drift drift-a"/><div className="bg-drift drift-b"/><div className="bg-drift drift-c"/><div className="bg-ring ring-a"/><div className="bg-ring ring-b"/><div className="bg-float bf-1"><span className="coin"/></div><div className="bg-float bf-2"><span className="coin"/></div><div className="bg-float bf-3"><span className="coin"/></div><div className="bg-float bf-4"><span className="coin"/></div><div className="bg-float bf-5"><span className="coin"/></div><div className="bg-float bf-6"><span className="coin"/></div><div className="ambient-orbit orbit-one"/><div className="ambient-orbit orbit-two"/><div className="ambient-orbit orbit-three"/><svg className="ambient-lines" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice"><path d="M-200 780C160 300 410 1110 840 500S1430 240 1700 450"/><path d="M-200 805C160 325 410 1135 840 525S1430 265 1700 475"/><path d="M-200 830C160 350 410 1160 840 550S1430 290 1700 500"/></svg></div>
 }
 function ScrollTools() {
   const meter = useRef(null)
