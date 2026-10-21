@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     if (!estimate.ok) return reply(res, 400, { error: estimate.error })
     calculatorContext = '\nCALCULATOR ESTIMATES (computed by this server): ' + nutritionContext(estimate)
   }
-  const model = process.env.GROQ_MODEL || 'openai/gpt-oss-20b'
+  const model = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
   if (!/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/.test(model)) return reply(res, 503, { error: 'The assistant needs a configuration update.' })
   const streaming = body.stream === true && typeof res.write === 'function'
   const controller = new AbortController()
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
       const result = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST', signal: controller.signal,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
-        body: JSON.stringify({ model, messages: [{ role: 'system', content: INSTRUCTIONS + calculatorContext + (calculatorContext ? '\nKeep this explanation under 100 words. State the supplied maintenance and protein estimates accurately, then give two practical next steps. Do not repeat the full calculator input list.' : '\nFor simple questions answer in one or two sentences. Otherwise use at most 120 words.') }, ...body.messages.map(({role,content}) => ({role,content}))], temperature: .5, top_p: 1, max_tokens: attempt ? 1536 : calculatorContext ? 768 : 384, stream: streaming })
+        body: JSON.stringify({ model, messages: [{ role: 'system', content: INSTRUCTIONS + calculatorContext + (calculatorContext ? '\nKeep this explanation under 100 words. State the supplied maintenance and protein estimates accurately, then give two practical next steps. Do not repeat the full calculator input list.' : '\nFor simple questions answer in one or two sentences. Otherwise use at most 120 words.') }, ...body.messages.map(({role,content}) => ({role,content}))], temperature: .5, top_p: 1, max_tokens: attempt ? 2560 : calculatorContext ? 1800 : 1200, reasoning_effort: 'medium', stream: streaming })
       })
       if (!result.ok) {
         const error = result.status === 429 ? 'The AI provider has reached its usage limit. Please try later.' : 'The AI provider is unavailable or needs configuration. Please try later.'
