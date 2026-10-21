@@ -1,0 +1,14 @@
+.motion-button{position:relative;overflow:hidden;transition:width .5s cubic-bezier(.2,.8,.2,1),padding .5s cubic-bezier(.2,.8,.2,1),background-color .4s ease,box-shadow .4s ease,transform .25s ease}
+.motion-button .mb-label{display:inline-flex;align-items:center;gap:22px;max-width:420px;white-space:nowrap;overflow:hidden;transition:max-width .5s cubic-bezier(.2,.8,.2,1),opacity .25s ease,transform .35s ease}
+.motion-button .mb-spinner,.motion-button .mb-check{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;pointer-events:none;opacity:0;transform:scale(.6);transition:opacity .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
+.motion-button .mb-spinner{border:2.5px solid rgba(255,255,255,.3);border-top-color:#ffffff;border-radius:50%}
+.motion-button .mb-check{fill:none;stroke:#ffffff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:26;stroke-dashoffset:26;transition:stroke-dashoffset .45s ease .1s,opacity .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
+.motion-button .mb-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.motion-button[data-phase=loading],.motion-button[data-phase=success]{display:flex;width:58px;min-width:58px;max-width:58px;padding-inline:0;margin-left:auto;margin-right:auto;justify-content:center}
+.motion-button[data-phase=loading] .mb-label,.motion-button[data-phase=success] .mb-label{max-width:0;opacity:0;transform:translateY(-6px)}
+.motion-button[data-phase=loading] .mb-spinner{opacity:1;transform:none;animation:mb-spin .8s linear infinite}
+.motion-button[data-phase=success] .mb-check{opacity:1;transform:none;stroke-dashoffset:0}
+.motion-button:disabled{opacity:1;cursor:progress}
+.motion-button[data-phase=success]:disabled{background:#2f7d4f;box-shadow:0 0 0 0 rgba(47,125,79,0)}
+@keyframes mb-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.motion-button,.motion-button *{transition-duration:.01ms!important}.motion-button[data-phase=loading] .mb-spinner{animation-duration:2.4s}}
